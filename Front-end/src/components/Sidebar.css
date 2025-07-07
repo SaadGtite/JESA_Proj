@@ -1,6 +1,7 @@
 .sidebar {
   width: 70px;
-  background-color: #007bff;
+  background-color: rgba(255, 255, 255, 0.1); /* transparent white */
+  backdrop-filter: blur(10px); /* optional: glass effect */
   color: white;
   height: calc(100vh - 70px); /* subtract topbar height */
   transition: width 0.3s;
@@ -10,13 +11,16 @@
   flex-direction: column;
   align-items: center;
   padding-top: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .sidebar:hover {
   width: 240px;
   align-items: flex-start;
   padding-left: 20px;
+  background-color: rgba(255, 255, 255, 0.15); /* slightly brighter on hover */
 }
+
 
 
 .sidebar-logo {

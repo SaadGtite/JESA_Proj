@@ -1,8 +1,7 @@
-import React from 'react';
-import Topbar from './components/Topbar';
-import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import './App.css';
+import Sidebar from './components/Sidebar';
+import Topbar from './components/Topbar';
+import './App.css'; // Import global styles
 
 function App() {
   return (
@@ -10,7 +9,7 @@ function App() {
       <Topbar />
       <div className="content-layout">
         <Sidebar />
-        <Dashboard />
+        <Dashboard /> {/* <-- this must be visible here */}
       </div>
     </div>
   );

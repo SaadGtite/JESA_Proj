@@ -1,0 +1,15 @@
+.dashboard {
+  padding: 30px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers the title and content */
+}
+
+.project-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Center cards horizontally */
+  gap: 30px;
+  margin-top: 20px;
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import ProjectCard from '../components/ProjectCard';
+import './Dashboard.css';
 
 const projects = [
   {
@@ -29,15 +30,14 @@ const projects = [
     score: 92,
     status: 'Approved',
   },
-  // Add more...
+  // Add more projects if needed
 ];
 
 const Dashboard = () => {
   return (
-    <div className="dashboard p-4">
+    <div className="dashboard">
       <h3>Projects Dashboard</h3>
       <p>Manage and monitor your CRR validation projects</p>
-      <input type="text" className="form-control my-3" placeholder="Search projects..." />
       <div className="project-grid">
         {projects.map((project, i) => (
           <ProjectCard key={i} project={project} />
