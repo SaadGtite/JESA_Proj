@@ -1,0 +1,98 @@
+.sidebar {
+  width: 70px;
+  background-color: #007bff;
+  color: white;
+  height: calc(100vh - 70px); /* subtract topbar height */
+  transition: width 0.3s;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1rem;
+}
+
+.sidebar:hover {
+  width: 240px;
+  align-items: flex-start;
+  padding-left: 20px;
+}
+
+
+.sidebar-logo {
+  font-size: 28px;
+  margin-bottom: 30px;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+}
+
+.sidebar-menu li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  gap: 12px;
+  transition: background 0.2s;
+}
+
+.sidebar-menu li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+
+.sidebar-menu span {
+  display: none;
+  white-space: nowrap;
+}
+
+.sidebar:hover .sidebar-menu span {
+  display: inline;
+}
+
+/* NEW PROJECT BUTTON STYLES */
+.new-project-container {
+  margin-top: auto;
+  margin-bottom: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.new-project-btn {
+  background-color: white;
+  color: #007bff;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 20px;
+  width: 45px;
+  height: 45px;
+  transition: width 0.3s, justify-content 0.3s;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.new-project-icon {
+  font-size: 18px;
+}
+
+.new-project-text {
+  display: none;
+}
+
+.sidebar:hover .new-project-btn {
+  width: 180px;
+  justify-content: center;
+}
+
+.sidebar:hover .new-project-text {
+  display: inline;
+}

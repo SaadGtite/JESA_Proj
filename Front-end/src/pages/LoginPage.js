@@ -1,6 +1,6 @@
 import React from 'react';
 import './LoginPage.css';
-import logo from '../Static/logo.png'; // Assuming you have a logo image in the Static folder
+import logo from '../assets/logo.png'; // Assuming you have a logo image in the Static folder
 function LoginPage() {
   return (
     <div className="container-fluid vh-100">
