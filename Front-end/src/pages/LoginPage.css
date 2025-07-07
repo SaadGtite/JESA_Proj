@@ -1,0 +1,7 @@
+.login-bg {
+  background-image: #1500ff; /* Replace with the actual image */
+  background-size: cover;
+  background-position: center;
+  background-image: url('../Static/back.png');
+  height: 100%;
+}
