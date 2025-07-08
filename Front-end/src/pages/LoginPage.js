@@ -1,11 +1,20 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
-import logo from '../assets/logo.png'; // Assuming you have a logo image in the Static folder
+import logo from '../assets/logo.png';
+
 function LoginPage() {
+  const navigate = useNavigate();
+
+  const handleSubmit = (e) => {
+    e.preventDefault(); // prevent full page reload
+    // Optional: add login validation logic here
+    navigate('/home'); // navigate to HomePage
+  };
+
   return (
     <div className="container-fluid vh-100">
       <div className="row h-100">
-        
         <div className="col-md-6 d-none d-md-block login-bg" />
 
         <div className="col-md-6 d-flex align-items-center justify-content-center">
@@ -22,7 +31,7 @@ function LoginPage() {
             <h4 className="mb-1">Welcome back</h4>
             <p className="mb-4 text-muted">Please enter your credentials to access your account</p>
 
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Username</label>
                 <input type="text" className="form-control" placeholder="Enter your username" />
