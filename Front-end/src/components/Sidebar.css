@@ -1,6 +1,6 @@
 .sidebar {
   width: 70px;
-  background-color: rgba(255, 255, 255, 0.1); /* transparent white */
+  background-color: #001aff; /* solid blue */
   backdrop-filter: blur(10px); /* optional: glass effect */
   color: white;
   height: calc(100vh - 70px); /* subtract topbar height */
@@ -18,7 +18,7 @@
   width: 240px;
   align-items: flex-start;
   padding-left: 20px;
-  background-color: rgba(255, 255, 255, 0.15); /* slightly brighter on hover */
+  background-color: #001aff; /* solid blue */
 }
 
 
@@ -30,21 +30,32 @@
 
 .sidebar-menu {
   list-style: none;
-  padding: 0;
+  padding: 5px;
   width: 100%;
 }
+.sidebar-menu li svg {
+  font-size: 20px;  /* Adjust to your desired size */
+  min-width: 22px;  /* Keep icons aligned with some width */
+}
+.sidebar-menu li.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-left: 3px solid white;
+  border-radius: 5px;
+}
+
 
 .sidebar-menu li {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 20px;
+  gap: 15px;
   cursor: pointer;
-  gap: 12px;
   transition: background 0.2s;
+  
 }
 
 .sidebar-menu li:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
   border-radius: 5px;
 }
 
@@ -56,6 +67,7 @@
 .sidebar:hover .sidebar-menu span {
   display: inline;
 }
+
 
 /* NEW PROJECT BUTTON STYLES */
 .new-project-container {

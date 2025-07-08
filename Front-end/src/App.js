@@ -1,17 +1,17 @@
-import Dashboard from './pages/Dashboard';
-import Sidebar from './components/Sidebar';
-import Topbar from './components/Topbar';
-import './App.css'; // Import global styles
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import HomePage from './pages/Homepage';
+
 
 function App() {
   return (
-    <div className="app">
-      <Topbar />
-      <div className="content-layout">
-        <Sidebar />
-        <Dashboard /> {/* <-- this must be visible here */}
-      </div>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/home" element={<HomePage /> }  />
+      </Routes>
+    </Router>
   );
 }
 
