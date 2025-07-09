@@ -14,6 +14,7 @@
   border-radius: 4px;
   color: white;
   cursor: pointer;
+  margin-right: 10px;
 }
 
 .btn-outline:hover {
@@ -89,6 +90,12 @@
   font-size: 0.9rem;
 }
 
+.metadata label {
+  margin-right: 18px; /* Adjust as needed for spacing */
+  display: inline-flex;
+  align-items: center;
+}
+
 .summary-box {
   background: white;
   padding: 20px;
@@ -134,4 +141,60 @@
   border-color: #0056b3; /* darker blue on focus */
   outline: none;
   box-shadow: 0 0 6px rgba(0, 123, 255, 0.5);
+}
+/* Hide the default radio/checkbox */
+.custom-radio,
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #fff;
+  border: 2px solid #007bff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  cursor: pointer;
+  position: relative;
+  transition: border 0.2s;
+}
+
+.custom-radio {
+  margin-right: 6px; /* Space between radio and number */
+}
+
+.custom-checkbox {
+  border-radius: 4px;
+}
+
+/* Checked state for radio */
+.custom-radio:checked {
+  background-color: #007bff;
+  box-shadow: 0 0 0 2px #e3f0ff;
+}
+
+.custom-radio:checked::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 4px auto;
+  border-radius: 50%;
+  background: #fff;
+}
+
+/* Checked state for checkbox */
+.custom-checkbox:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.custom-checkbox:checked::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin: 2px auto;
+  background: #fff;
+  border-radius: 2px;
 }

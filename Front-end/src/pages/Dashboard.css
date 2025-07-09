@@ -1,15 +1,114 @@
 .dashboard {
-  padding: 30px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers the title and content */
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: flex-start;
+ width: 100%;
+ box-sizing: border-box;
+ padding: 30px;
+ background-color: #f5f7fa;
+ min-height: 100vh;
+ font-family: 'Segoe UI', sans-serif;
+ text-align: center;
 }
 
+/* ======== Titres ======== */
+.dashboard h3 {
+ font-size: 1.8rem;
+ font-weight: 700;
+ color: #1e2a3a;
+ margin-bottom: 0.25rem;
+}
+
+.dashboard p {
+ color: #6c757d;
+ font-size: 1rem;
+ margin-bottom: 1.5rem;
+}
+
+/* ======== Bouton Afficher les filtres ======== */
+.filter-toggle-btn {
+ background-color: #05376d;
+ color: white;
+ border: none;
+ padding: 10px 20px;
+ font-weight: 600;
+ font-size: 0.95rem;
+ border-radius: 6px;
+ margin-bottom: 20px;
+ cursor: pointer;
+ transition: background-color 0.3s ease;
+}
+
+.filter-toggle-btn:hover {
+ background-color: #082f5e;
+}
+
+/* ======== Section Filtres ======== */
+.filters-container {
+ width: 100%;
+ max-width: 1200px;
+ margin-bottom: 25px;
+ text-align: left;
+}
+
+.filters-title {
+ font-size: 1.2rem;
+ font-weight: 600;
+ color: #05376d;
+ margin-bottom: 10px;
+ padding-left: 5px;
+}
+
+.filters-row {
+ display: flex;
+ flex-direction: row;
+ align-items: flex-start;
+ gap: 20px;
+ flex-wrap: nowrap;
+ overflow-x: auto;
+ padding: 15px;
+ background-color: #eaf1f8; /* Bleu clair doux */
+ border: 1px solid #d0dae4;
+ border-radius: 10px;
+ box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Groupe input avec label */
+.filter-group {
+ display: flex;
+ flex-direction: column;
+ min-width: 180px;
+ flex: 0 0 auto;
+}
+
+.filter-group label {
+ font-size: 0.85rem;
+ color: hashtag#34495e;
+ margin-bottom: 4px;
+ font-weight: 500;
+}
+
+.filter-group input.form-control {
+ padding: 8px 12px;
+ border: 1px solid #ccc;
+ border-radius: 6px;
+ background-color: #fff;
+ font-size: 0.9rem;
+ transition: border-color 0.3s ease;
+}
+
+.filter-group input.form-control:focus {
+ border-color: #05376d;
+ outline: none;
+}
+
+/* ======== Grille des projets ======== */
 .project-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center; /* Center cards horizontally */
-  gap: 30px;
-  margin-top: 20px;
+ display: flex;
+ flex-wrap: wrap;
+ gap: 1.5rem;
+ justify-content: center;
+ width: 100%;
+ max-width: 1200px;
 }

@@ -1,17 +1,20 @@
 .sidebar {
+  position: fixed;
+  top: 70px; /* height of your topbar */
+  left: 0;
   width: 70px;
-  background-color: #18227b; /* solid blue */
-  backdrop-filter: blur(10px); /* optional: glass effect */
+  height: calc(100vh - 70px); /* full height minus topbar */
+  background-color: #18227b;
+  backdrop-filter: blur(10px);
   color: white;
-  height: calc(100vh - 70px); /* subtract topbar height */
   transition: width 0.3s;
   overflow: hidden;
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: 1rem;
   border-right: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 999; /* ensure it's above content but below topbar */
 }
 
 .sidebar:hover {
@@ -53,12 +56,15 @@
 
 /* Content area: right of sidebar */
 .content-area {
-  flex:1;
+  flex: 1;
   display: flex;
-  align-items: center;       /* vertical centering */
-  justify-content: center;   /* horizontal centering */
-  padding: 20px;
-  background-color:  #eeeeee;
+  flex-direction: column;
+  align-items: center;         /* horizontal centering */
+  justify-content: center;     /* vertical centering */
+  padding: 90px 20px 20px 20px;
+  min-height: calc(100vh - 70px);
+  background-color: #eeeeee;
+  box-sizing: border-box;
 }
 
 

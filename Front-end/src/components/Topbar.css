@@ -15,31 +15,70 @@
 
 
 .topbar-left {
-  display: flex;
-  align-items: center;
+ display: flex;
+ align-items: center;
 }
 
 .topbar-logo {
-  height: 70px;
-  width: 70px;
-  object-fit: contain;
+ height: 60px;
+ width: 60px;
+ object-fit: contain;
 }
 
 .topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+ display: flex;
+ align-items: center;
+ gap: 20px;
 }
 
-.search-input {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  width: 300px;
+.notification-icon {
+ color: hashtag#ffffff;
+ font-size: 20px;
+ cursor: pointer;
+ position: relative;
+ transition: color 0.3s ease;
+}
+
+.notification-icon:hover {
+ color: hashtag#ffcc00;
 }
 
 .user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+ display: flex;
+ align-items: center;
+ gap: 12px;
+ background-color: rgba(255, 255, 255, 0.08);
+ padding: 6px 12px;
+ border-radius: 30px;
+}
+
+.username {
+ font-weight: 500;
+ font-size: 15px;
+ color: hashtag#fff;
+}
+
+.user-avatar {
+ width: 38px;
+ height: 38px;
+ border-radius: 50%;
+ object-fit: cover;
+ border: 2px solid hashtag#ffffff;
+}
+
+.btn-light {
+ padding: 6px 12px;
+ border: none;
+ border-radius: 20px;
+ background-color: hashtag#cec2c2;
+ color: hashtag#05376d;
+ font-weight: 600;
+ cursor: pointer;
+ transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+.btn-light:hover {
+ background-color: hashtag#ffcc00;
+ color: hashtag#05376d;
 }

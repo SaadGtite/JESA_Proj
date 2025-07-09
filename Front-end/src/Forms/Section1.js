@@ -64,7 +64,6 @@ const Section1 = () => {
         <div className="topbar-buttons">
           <button className="btn-outline">Print</button>
           <button className="btn-outline">Export</button>
-          <button className="btn-primary">New Project</button>
         </div>
       </div>
 
@@ -108,17 +107,29 @@ const Section1 = () => {
               <div><strong>Deliverable Information:</strong> {q.deliverable}</div>
               <div>
                 <strong>Score:</strong>
-                <label><input type="radio" name={q.id} onChange={() => handleScoreChange(index, 0)} /> 0</label>
-                <label><input type="radio" name={q.id} onChange={() => handleScoreChange(index, 2.5)} /> 2.5</label>
-                <label><input type="radio" name={q.id} onChange={() => handleScoreChange(index, 5)} /> 5</label>
+                <label><input
+                        type="radio"
+                        className="custom-radio"
+                        name={q.id}
+                        onChange={() => handleScoreChange(index, 0)}/> 0</label>
+                <label><input
+                        type="radio"
+                        className="custom-radio"
+                        name={q.id}
+                        onChange={() => handleScoreChange(index, 2.5)}/> 2.5</label>
+                <label><input
+                        type="radio"
+                        className="custom-radio"
+                        name={q.id}
+                        onChange={() => handleScoreChange(index, 5)}/> 5</label>
               </div>
               <div>
                 <label>
                   <input
                     type="checkbox"
+                    className="custom-checkbox"
                     checked={q.showstopper}
-                    onChange={() => handleShowstopperChange(index)}
-                  /> Showstopper
+                    onChange={() => handleShowstopperChange(index)}/> Showstopper
                 </label>
               </div>
             </div>

@@ -1,62 +1,43 @@
 import React from 'react';
-import './ProjectCard.css';
+import './ProjectCard.css'; // Assure-toi d'importer le CSS
 
 const ProjectCard = ({ project }) => {
-  // If no project prop is passed, render nothing or fallback
-  if (!project) return <div className="project-card">No project data</div>;
+ const statusColor = {
+ "Approved": "success",
+ "In Progress": "primary",
+ "Pending Review": "warning",
+ "Needs Revision": "danger"
+ };
 
-  const statusColors = {
-    "Approved": "#28a745",
-    "In Progress": "#007bff",
-    "Pending Review": "#ffc107",
-    "Needs Revision": "#dc3545"
-  };
+ return (
+ <div className="project-card">
+ <div className={`status-label badge bg-${statusColor[project.status]}`}>
+ {project.status}
+ </div>
 
-  const {
-    status = "Unknown",
-    name = "Unnamed Project",
-    id = "N/A",
-    description = "No description provided",
-    manager = "Unknown Manager",
-    reviewDate = "N/A",
-    score = null
-  } = project;
+ <h5 className="mb-1">{project.name}</h5>
+ <small className="text-muted">Project #: {project.id}</small>
+ <p className="mt-2 mb-3">{project.description}</p>
 
-  return (
-    <div className="project-card">
-      <div className="project-card-header">
-        <span
-          className="project-status"
-          style={{ backgroundColor: statusColors[status] || "#6c757d" }}
-        >
-          {status}
-        </span>
-      </div>
+ <div className="d-flex justify-content-between align-items-center">
+ <div>
+ <strong>{project.manager}</strong><br />
+ <small className="text-muted">Review: {project.reviewDate}</small>
+ </div>
 
-      <div className="project-card-body">
-        <h5 className="project-name">{name}</h5>
-        <p className="project-id">Project ID: {id}</p>
-        <p className="project-description">{description}</p>
-
-        <div className="project-footer">
-          <div className="project-manager">
-            <strong>{manager}</strong>
-            <br />
-            <small>Review: {reviewDate}</small>
-          </div>
-
-          <div className="project-score">
-            {score != null ? (
-              <span className="score">{score}% Score</span>
-            ) : (
-              <span className="pending">Pending</span>
-            )}
-            <button className="details-button">View Details</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+ <div className="score-section text-center">
+ {project.status === "Pending Review" ? (
+ <div className="text-warning fw-semibold mb-1">Pending</div>
+ ) : (
+ <div className={`text-${statusColor[project.status]} fw-semibold mb-1`}>
+ {project.score}% Score
+ </div>
+ )}
+ <button className="view-btn btn btn-sm">View Details</button>
+ </div>
+ </div>
+ </div>
+ );
 };
 
 export default ProjectCard;
