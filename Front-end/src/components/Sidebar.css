@@ -1,19 +1,22 @@
+/* Prevent horizontal scrolling on the whole page */
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .sidebar {
   position: fixed;
-  top: 70px; /* height of your topbar */
+  top: 70px;
   left: 0;
   width: 70px;
-  height: calc(100vh - 70px); /* full height minus topbar */
+  height: calc(100vh - 70px); /* fill from under topbar to bottom */
   background-color: #18227b;
   backdrop-filter: blur(10px);
   color: white;
   transition: width 0.3s;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 1rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
   z-index: 999; /* ensure it's above content but below topbar */
 }
 
@@ -50,6 +53,17 @@
   display: flex;
   height: calc(100vh - 70px); /* full height minus topbar */
   width: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.app-container.sidebar-expanded .sidebar {
+  width: 240px;
+  align-items: flex-start;
+  padding-left: 20px;
+  background-color: #18227b; /* solid blue */
 }
 
 /* Sidebar styles already defined, keep them */
@@ -59,14 +73,25 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;         /* horizontal centering */
-  justify-content: center;     /* vertical centering */
-  padding: 90px 20px 20px 20px;
-  min-height: calc(100vh - 70px);
-  background-color: #eeeeee;
+  align-items: stretch;
+  justify-content: flex-start;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  background: #d4dbe6; /* <-- Set this to your main content background color */
   box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: margin-left 0.3s, background 0.3s;
+  margin-left: 70px; /* Default sidebar width */
 }
 
+/* When sidebar is expanded, increase margin-left */
+.sidebar:hover ~ .content-area,
+.app-container.sidebar-expanded .content-area {
+  margin-left: 240px;
+}
 
 .sidebar-menu li {
   display: flex;
@@ -83,9 +108,20 @@
   border-radius: 5px;
 }
 
-.sidebar-menu span {
-  display: none;
-  white-space: nowrap;
+/* Hide text by default, but delay hiding to match sidebar collapse */
+.sidebar-menu span,
+.new-project-text {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s 0.3s, visibility 0s 0.5s; /* delay opacity/visibility when collapsing */
+}
+
+/* Show text after sidebar expands */
+.sidebar:hover .sidebar-menu span,
+.sidebar:hover .new-project-text {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.2s 0.15s, visibility 0s 0s; /* fade in after expand */
 }
 
 .sidebar:hover .sidebar-menu span {

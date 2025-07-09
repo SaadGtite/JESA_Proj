@@ -4,12 +4,13 @@
  align-items: center;
  justify-content: flex-start;
  width: 100%;
+ height: calc(100vh - 70px); /* always fill from topbar to bottom */
  box-sizing: border-box;
  padding: 30px;
- background-color: #f5f7fa;
- min-height: 100vh;
+ background-color: #d4dbe6;
  font-family: 'Segoe UI', sans-serif;
  text-align: center;
+ overflow-y: auto; /* allow scrolling if content is long */
 }
 
 /* ======== Titres ======== */
@@ -47,7 +48,7 @@
 /* ======== Section Filtres ======== */
 .filters-container {
  width: 100%;
- max-width: 1200px;
+ max-width: max-content;
  margin-bottom: 25px;
  text-align: left;
 }

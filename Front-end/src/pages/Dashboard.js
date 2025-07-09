@@ -60,7 +60,7 @@ const Dashboard = () => {
 
  return (
   <div className="dashboard main-content">
-    <h2 className="dashboard-title">Tableau de bord des projets</h2>
+    <h2 className="dashboard-title h">Tableau de bord des projets</h2>
     <button
       className="filter-toggle-btn"
       onClick={() => setShowFilters(!showFilters)}

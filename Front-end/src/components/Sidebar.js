@@ -42,7 +42,7 @@ const Sidebar = () => {
       case 'Dashboard':
         return <DashboardPage />;
       case 'Projects':
-        return <div className="content"><h2>Projects</h2><p>Manage your projects here.</p></div>;
+        return <div className="content "><h2>Projects</h2><p>Manage your projects here.</p></div>;
       case 'CRR Reviews':
         return <div className="content"><h2>CRR Reviews</h2><p>View and manage CRR reviews.</p></div>;
       case 'Analytics':
