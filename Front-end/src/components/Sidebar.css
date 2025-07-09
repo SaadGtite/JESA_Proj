@@ -1,6 +1,6 @@
 .sidebar {
   width: 70px;
-  background-color: #001aff; /* solid blue */
+  background-color: #18227b; /* solid blue */
   backdrop-filter: blur(10px); /* optional: glass effect */
   color: white;
   height: calc(100vh - 70px); /* subtract topbar height */
@@ -18,7 +18,7 @@
   width: 240px;
   align-items: flex-start;
   padding-left: 20px;
-  background-color: #001aff; /* solid blue */
+  background-color: #18227b; /* solid blue */
 }
 
 
@@ -41,6 +41,24 @@
   background-color: rgba(255, 255, 255, 0.2);
   border-left: 3px solid white;
   border-radius: 5px;
+}
+/* App container holds sidebar + content side by side */
+.app-container {
+  display: flex;
+  height: calc(100vh - 70px); /* full height minus topbar */
+  width: 100%;
+}
+
+/* Sidebar styles already defined, keep them */
+
+/* Content area: right of sidebar */
+.content-area {
+  flex:1;
+  display: flex;
+  align-items: center;       /* vertical centering */
+  justify-content: center;   /* horizontal centering */
+  padding: 20px;
+  background-color:  #eeeeee;
 }
 
 
@@ -69,9 +87,10 @@
 }
 
 
+
 /* NEW PROJECT BUTTON STYLES */
 .new-project-container {
-  margin-top: auto;
+  margin-top: 20px;
   margin-bottom: 20px;
   width: 100%;
   display: flex;
@@ -80,7 +99,7 @@
 
 .new-project-btn {
   background-color: white;
-  color: #007bff;
+  color: #18227b;
   border: none;
   border-radius: 20px;
   padding: 10px 20px;

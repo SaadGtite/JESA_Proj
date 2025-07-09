@@ -6,6 +6,7 @@ import {
   FaSignOutAlt, FaPlus
 } from 'react-icons/fa';
 import './Sidebar.css';
+import DashboardPage from '../pages/Dashboard';
 
 const Sidebar = () => {
   const [activeItem, setActiveItem] = useState('Dashboard');
@@ -30,10 +31,16 @@ const Sidebar = () => {
     }
   };
 
+  // Add your onNewProjectClick handler here:
+  const handleNewProjectClick = () => {
+    // For example, navigate to a New Project page or show a modal
+    navigate('/new-project');
+  };
+
   const renderContent = () => {
     switch (activeItem) {
       case 'Dashboard':
-        return <div className="content"><h2>Dashboard</h2><p>Overview of your activities.</p></div>;
+        return <DashboardPage />;
       case 'Projects':
         return <div className="content"><h2>Projects</h2><p>Manage your projects here.</p></div>;
       case 'CRR Reviews':
@@ -66,7 +73,10 @@ const Sidebar = () => {
           ))}
         </ul>
         <div className="new-project-container">
-          <button className="new-project-btn">
+          <button
+            className="new-project-btn"
+            onClick={handleNewProjectClick} // <--- Added here
+          >
             <FaPlus className="new-project-icon" />
             <span className="new-project-text">New Project</span>
           </button>
