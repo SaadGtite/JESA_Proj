@@ -1,15 +1,39 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
 import './LoginPage.css';
+import 'react-toastify/dist/ReactToastify.css';
 import logo from '../assets/logo.png';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const [message, setMessage] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const handleSubmit = (e) => {
-    e.preventDefault(); // prevent full page reload
-    // Optional: add login validation logic here
-    navigate('/home'); // navigate to HomePage
+    try {
+      const response = await fetch('http://localhost:5000/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+      
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('role', data.role);
+        navigate('/home');
+      } else {
+        setMessage(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage('Something went wrong, please try again.');
+    }
   };
 
   return (
@@ -31,17 +55,31 @@ function LoginPage() {
             <h4 className="mb-1">Welcome back</h4>
             <p className="mb-4 text-muted">Please enter your credentials to access your account</p>
 
+            {message && <div className="message">{message}</div>}
+
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Username</label>
-                <input type="text" className="form-control" placeholder="Enter your username" />
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
               </div>
 
               <div className="mb-3">
                 <label className="form-label">Password</label>
-                <input type="password" className="form-control" placeholder="Enter your password" />
+                <input
+                  type="password"
+                  className="form-control"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
                 <div className="text-end mt-1">
-                  <a href="#" className="small text-primary text-decoration-none">Forgot password?</a>
+                  <a href="/forgot-password" className="small text-primary text-decoration-none">Forgot password?</a>
                 </div>
               </div>
 
@@ -54,13 +92,13 @@ function LoginPage() {
             </form>
 
             <div className="mt-4 d-flex justify-content-between small">
-              <span>Don’t have an account?</span>
-              <a href="#">Contact your administrator</a>
+              <Link to="/register">Don’t have an account?</Link>
             </div>
 
             <div className="mt-5 text-muted small text-center">
               © 2023 CRR Validation Application. All rights reserved.
             </div>
+            <ToastContainer />
           </div>
         </div>
       </div>

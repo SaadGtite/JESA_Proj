@@ -82,3 +82,11 @@
  background-color: hashtag#ffcc00;
  color: hashtag#05376d;
 }
+.user-icon {
+  margin-left: 8px;
+  margin-right: 8px;
+  color: #555;
+}
+.user-icon:hover {
+  color: #b46b18;
+}
