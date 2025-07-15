@@ -1,10 +1,11 @@
 .form-page {
-  background-color: #f1f5f9;
-  min-height: 100vh;
+background: linear-gradient(135deg, #efd6bb, #e6ecf0);  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
+
+  font-family: 'Inter', sans-serif;
 }
 
 .form-container {
