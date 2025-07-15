@@ -8,6 +8,7 @@ import Section1 from './Forms/Section1';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; 
 
 
+
 function App() {
   return (
     <Router>

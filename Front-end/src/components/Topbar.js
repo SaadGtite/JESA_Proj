@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell, FaUserCircle } from 'react-icons/fa'; 
-import logo from '../assets/logo.png';
+import logo from '../assets/logo2.png';
 import './Topbar.css';
 
 const Topbar = () => {

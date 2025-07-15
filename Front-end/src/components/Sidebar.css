@@ -1,37 +1,33 @@
-/* Prevent horizontal scrolling on the whole page */
 html, body {
   width: 100%;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+
 .sidebar {
   position: fixed;
-  top: 70px;
+  top: 60px;
   left: 0;
-  width: 70px;
-  height: calc(100vh - 70px); /* fill from under topbar to bottom */
-  background-color: #18227b;
-  backdrop-filter: blur(10px);
-  color: white;
+  width: 60px;
+  height: calc(100vh - 60px);
+  background-color: #4c75b3; /* Light blue */
+  color: #ffffff;
   transition: width 0.3s;
-  z-index: 999; /* ensure it's above content but below topbar */
+  z-index: 999;
 }
 
 .sidebar:hover {
-  width: 240px;
-  align-items: flex-start;
-  padding-left: 20px;
-  background-color: #18227b; /* solid blue */
+  width: 200px;
+  padding-left: 15px;
 }
 
-
-
 .sidebar-logo {
-  font-size: 28px;
-  margin-bottom: 30px;
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 
 .sidebar-menu {
@@ -39,126 +35,120 @@ html, body {
   padding: 5px;
   width: 100%;
 }
+
 .sidebar-menu li svg {
-  font-size: 20px;  /* Adjust to your desired size */
-  min-width: 22px;  /* Keep icons aligned with some width */
+  font-size: 18px;
+  min-width: 20px;
 }
+
 .sidebar-menu li.active {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-left: 3px solid white;
-  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #2563eb;
+  border-radius: 4px;
 }
-/* App container holds sidebar + content side by side */
+
 .app-container {
   display: flex;
-  height: calc(100vh - 70px); /* full height minus topbar */
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  overflow-x: hidden;
 }
+
 
 .app-container.sidebar-expanded .sidebar {
-  width: 240px;
-  align-items: flex-start;
-  padding-left: 20px;
-  background-color: #18227b; /* solid blue */
+  width: 200px;
+  padding-left: 15px;
 }
 
-/* Sidebar styles already defined, keep them */
-
-/* Content area: right of sidebar */
 .content-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  height: 100%;
+  height: calc(100vh - 60px);
   min-width: 0;
   min-height: 0;
-  padding: 0;
-  background: #d4dbe6; /* <-- Set this to your main content background color */
+  padding: 20px;
+  background: linear-gradient(135deg, #efd6bb, #e6ecf0);
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
-  transition: margin-left 0.3s, background 0.3s;
-  margin-left: 70px; /* Default sidebar width */
+  transition: margin-left 0.3s;
+  margin-left: 60px;
+  margin-top: 60px;
 }
 
-/* When sidebar is expanded, increase margin-left */
+
+
 .sidebar:hover ~ .content-area,
 .app-container.sidebar-expanded .content-area {
-  margin-left: 240px;
+  margin-left: 200px;
 }
 
 .sidebar-menu li {
   display: flex;
   align-items: center;
-  padding: 20px;
-  gap: 15px;
+  padding: 15px;
+  gap: 10px;
   cursor: pointer;
-  transition: background 0.2s;
-  
+  transition: background 0,1s;
 }
 
 .sidebar-menu li:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
 }
 
-/* Hide text by default, but delay hiding to match sidebar collapse */
 .sidebar-menu span,
 .new-project-text {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s 0.3s, visibility 0s 0.5s; /* delay opacity/visibility when collapsing */
+  transition: opacity 0.2s 0.3s, visibility 0s 1ms;
 }
 
-/* Show text after sidebar expands */
 .sidebar:hover .sidebar-menu span,
 .sidebar:hover .new-project-text {
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.2s 0.15s, visibility 0s 0s; /* fade in after expand */
+  transition: opacity 0.1s 1ms, visibility 0s 1ms;
 }
 
 .sidebar:hover .sidebar-menu span {
   display: inline;
 }
 
-
-
-/* NEW PROJECT BUTTON STYLES */
 .new-project-container {
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin-top: 15px;
+  margin-bottom: 15px;
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
 .new-project-btn {
-  background-color: white;
-  color: #18227b;
+  background-color: #f3f4f6;
+  color: #1e40af;
   border: none;
-  border-radius: 20px;
-  padding: 10px 20px;
-  width: 45px;
-  height: 45px;
+  border-radius: 15px;
+  padding: 8px 16px;
+  width: 40px;
+  height: 40px;
   transition: width 0.3s, justify-content 0.3s;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-weight: bold;
+  gap: 8px;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .new-project-icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .new-project-text {
@@ -166,7 +156,7 @@ html, body {
 }
 
 .sidebar:hover .new-project-btn {
-  width: 180px;
+  width: 160px;
   justify-content: center;
 }
 
