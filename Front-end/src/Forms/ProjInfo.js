@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import './ProjInfo.css'; // Assuming you have a CSS file for styling
+import './ProjInfo.css';
 import { useNavigate } from 'react-router-dom';
 
 const NewProjectForm = () => {
-  const navigate = useNavigate(); // ← Create navigate function
+  const navigate = useNavigate();
   const [reviewTeam, setReviewTeam] = useState([]);
   const [interviewTeam, setInterviewTeam] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
@@ -15,8 +15,9 @@ const NewProjectForm = () => {
   const interviewRoleRef = useRef(null);
 
   const handleBack = () => {
-    navigate(-1); // ← Go back to the previous page
+    navigate(-1);
   };
+
   const handleNext = (e) => {
     e.preventDefault();
     const responsibleOffice = e.target.querySelector('div.col-md-6 input:nth-child(2)').value;
@@ -27,8 +28,8 @@ const NewProjectForm = () => {
     const constructorManager = e.target.querySelector('div.col-md-6:nth-child(2) input:nth-child(4)').value;
     const projectScope = e.target.querySelector('div.col-md-6:nth-child(2) textarea').value;
 
-    if (!responsibleOffice || !projectName || !projectNumber || !reviewDate || !manager || !constructorManager || !projectScope || reviewTeam.length === 0 || interviewTeam.length === 0) {
-      alert('All fields are required to proceed to the CRR questions.');
+    if (!responsibleOffice || !projectName || !projectNumber || !reviewDate || !manager || !constructorManager || !projectScope) {
+      alert('All fields except team members are required to proceed to the CRR questions.');
       return;
     }
     navigate('/crr-Section1');
@@ -119,11 +120,11 @@ const NewProjectForm = () => {
 
           {/* Review Team Member Section */}
           <div className="col-md-6 mt-4">
-            <label className="form-label">Review team member <span className="text-danger">*</span></label>
-            <div className="input-group mb-3">
-              <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef} required />
-              <select className="form-select" defaultValue="" ref={reviewRoleRef} required>
-                <option value="" disabled></option>
+            <label className="form-label">Review team member</label>
+            <div className="input-group mb-3 team-input-group">
+              <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef} />
+              <select className="form-select" defaultValue="" ref={reviewRoleRef}>
+                <option value="" disabled>Select Role</option>
                 <option>CM</option>
                 <option>PM</option>
                 <option>SM</option>
@@ -165,11 +166,11 @@ const NewProjectForm = () => {
 
           {/* Project Team Member Interviewed Section */}
           <div className="col-md-6 mt-4">
-            <label className="form-label">Project team member interviewed <span className="text-danger">*</span></label>
-            <div className="input-group mb-3">
-              <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} required />
-              <select className="form-select" defaultValue="" ref={interviewRoleRef} required>
-                <option value="" disabled></option>
+            <label className="form-label">Project team member interviewed</label>
+            <div className="input-group mb-3 team-input-group">
+              <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} />
+              <select className="form-select" defaultValue="" ref={interviewRoleRef}>
+                <option value="" disabled>Select Role</option>
                 <option>CM</option>
                 <option>PM</option>
                 <option>SM</option>
@@ -211,7 +212,7 @@ const NewProjectForm = () => {
 
           <div className="form-footer d-flex justify-content-between align-items-center mt-4">
             <button type="button" className="btn btn-secondary" onClick={handleBack}>Back</button>
-            <div className="text-muted small">All fields are required to proceed to the CRR questions</div>
+            <div className="text-muted small">All fields except team members are required to proceed to the CRR questions</div>
             <button type="submit" className="btn btn-primary">Next</button>
           </div>
         </form>

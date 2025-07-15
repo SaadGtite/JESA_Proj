@@ -1,142 +1,135 @@
-import React, { useState } from 'react';
-import ProjectCard from '../components/ProjectCard';
+import React, { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
+import { Card, Container, Row, Col } from 'react-bootstrap';
+import { Chart, registerables } from 'chart.js';
+import 'leaflet/dist/leaflet.css';
 import './Dashboard.css';
 
-const initialProjects = [
- {
- name: 'Project 1',
- id: 'HWY-2023-101',
- description: 'Expansion of Highway 101...',
- manager: 'Sarah Johnson',
- reviewDate: '2023-10-15',
- score: 85,
- status: 'In Progress',
- },
- {
- name: 'Project 2',
- id: 'BRG-2023-042',
- description: 'Structural renovation of Central Bridge...',
- manager: 'Michael Chen',
- reviewDate: '2023-11-03',
- score: null,
- status: 'Pending Review',
- },
- {
- name: 'Project 3',
- id: 'TRN-2023-078',
- description: 'New multi-modal transit hub...',
- manager: 'Emily Rodriguez',
- reviewDate: '2023-09-22',
- score: 92,
- status: 'Approved',
- },
+Chart.register(...registerables);
+
+// Exemples de données projet
+const projectData = [
+  {
+    city: 'Casablanca',
+    lat: 33.5731,
+    lng: -7.5898,
+    numberOfProjects: 12,
+    completion: { '1': 4, '2': 5, '3': 2, '4': 1 },
+  },
+  {
+    city: 'Rabat',
+    lat: 34.0209,
+    lng: -6.8416,
+    numberOfProjects: 8,
+    completion: { '1': 3, '2': 3, '3': 1, '4': 1 },
+  },
 ];
 
 const Dashboard = () => {
- const [filters, setFilters] = useState({
- name: '',
- id: '',
- reviewDate: '',
- manager: '',
- scope: '',
- });
+  const mapRef = useRef(null);
+  const chartRef = useRef(null);
+  const [selectedZone, setSelectedZone] = useState(null);
 
- const [showFilters, setShowFilters] = useState(false);
+  useEffect(() => {
+    if (!mapRef.current) {
+      mapRef.current = L.map('map', {
+        center: [32.0, -6.0],
+        zoom: 6,
+      });
 
- const handleFilterChange = (e) => {
- const { name, value } = e.target;
- setFilters({ ...filters, [name]: value });
- };
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+      }).addTo(mapRef.current);
 
- const filteredProjects = initialProjects.filter((project) => {
- return (
- project.name.toLowerCase().includes(filters.name.toLowerCase()) &&
- project.id.toLowerCase().includes(filters.id.toLowerCase()) &&
- project.reviewDate.includes(filters.reviewDate) &&
- project.manager.toLowerCase().includes(filters.manager.toLowerCase()) &&
- project.description.toLowerCase().includes(filters.scope.toLowerCase())
- );
- });
+      // Ajouter les zones projet
+      projectData.forEach((zone) => {
+        const circle = L.circle([zone.lat, zone.lng], {
+          color: 'blue',
+          fillColor: '#3f8efc',
+          fillOpacity: 0.4,
+          radius: 20000,
+        }).addTo(mapRef.current);
 
- return (
-  <div className="dashboard main-content">
-    <h2 className="dashboard-title h">Tableau de bord des projets</h2>
-    <button
-      className="filter-toggle-btn"
-      onClick={() => setShowFilters(!showFilters)}
-    >
-      {showFilters ? 'Masquer les filtres ▲' : 'Afficher les filtres ▼'}
-    </button>
+        circle.on('click', () => {
+          setSelectedZone(zone);
+          console.log('Zone sélectionnée :', zone);
+        });
+      });
+    }
+  }, []);
 
- {showFilters && (
- <div className="filters-container">
- <h5 className="filters-title">Filtres de recherche</h5>
- <div className="filters-row">
- <div className="filter-group">
- <label>Nom du projet</label>
- <input
- type="text"
- className="form-control"
- name="name"
- value={filters.name}
- onChange={handleFilterChange}
- />
- </div>
- <div className="filter-group">
- <label>Numéro</label>
- <input
- type="text"
- className="form-control"
- name="id"
- value={filters.id}
- onChange={handleFilterChange}
- />
- </div>
- <div className="filter-group">
- <label>Date de révision</label>
- <input
- type="date"
- className="form-control"
- name="reviewDate"
- value={filters.reviewDate}
- onChange={handleFilterChange}
- />
- </div>
- <div className="filter-group">
- <label>Bureau</label>
- <input
- type="text"
- className="form-control"
- name="manager"
- value={filters.manager}
- onChange={handleFilterChange}
- />
- </div>
- <div className="filter-group">
- <label>Portée</label>
- <input
- type="text"
- className="form-control"
- name="scope"
- value={filters.scope}
- onChange={handleFilterChange}
- />
- </div>
- </div>
- </div>
- )}
+  useEffect(() => {
+    if (selectedZone && chartRef.current) {
+      const ctx = chartRef.current.getContext('2d');
+      if (chartRef.current.chart) {
+        chartRef.current.chart.destroy();
+      }
 
- <div className="project-grid">
- {filteredProjects.length > 0 ? (
- filteredProjects.map((project, i) => (
- <ProjectCard key={i} project={project} />
- ))
- ) : (
- <p>Aucun projet ne correspond aux filtres.</p>
- )}
- </div>
- </div>
- );
+      chartRef.current.chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['CRR 1', 'CRR 2', 'CRR 3', 'CRR 4'],
+          datasets: [
+            {
+              label: 'Projects',
+              data: [
+                selectedZone.completion['1'],
+                selectedZone.completion['2'],
+                selectedZone.completion['3'],
+                selectedZone.completion['4'],
+              ],
+              backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545'],
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+          },
+        },
+      });
+    }
+  }, [selectedZone]);
+
+  return (
+    <Container fluid>
+      <Row>
+        <Col md={8}>
+          <div id="map" style={{ height: '600px', borderRadius: '20px' }}></div>
+        </Col>
+        <Col md={4}>
+          <Card className="project-details-card mt-3">
+            <h4 className="text-center">Project Details</h4>
+            {selectedZone ? (
+              <div className="fade-in">
+                <h5>{selectedZone.city}</h5>
+                <p>Number of Projects: {selectedZone.numberOfProjects}</p>
+                <p>Completion Status:</p>
+                <ul>
+                  <li>CRR 1: {selectedZone.completion['1']}</li>
+                  <li>CRR 2: {selectedZone.completion['2']}</li>
+                  <li>CRR 3: {selectedZone.completion['3']}</li>
+                  <li>CRR 4: {selectedZone.completion['4']}</li>
+                </ul>
+              </div>
+            ) : (
+              <p className="text-center fade-in">
+                Click on a project zone to see details.
+              </p>
+            )}
+          </Card>
+
+          {selectedZone && (
+            <Card className="project-details-card mt-3">
+              <h5 className="text-center">Projects by CRR</h5>
+              <canvas ref={chartRef}></canvas>
+            </Card>
+          )}
+        </Col>
+      </Row>
+    </Container>
+  );
 };
 
 export default Dashboard;

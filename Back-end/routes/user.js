@@ -40,15 +40,16 @@ router.post('/register', async (req, res) => {
 // Login route
 router.post('/login', async (req, res) => {
   try {
+    console.log('Login request body:', req.body); // Debug
     const { username, password } = req.body;
 
-    // Find user by username
     const user = await User.findOne({ username });
+    console.log('Found user:', user); // Debug
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
+    console.log('Comparing:', password, user.password); // Debug
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });

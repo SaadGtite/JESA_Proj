@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import './LoginPage.css';
-import 'react-toastify/dist/ReactToastify.css';
 import logo from '../assets/logo.png';
 
 function LoginPage() {
