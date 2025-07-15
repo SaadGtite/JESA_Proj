@@ -105,13 +105,7 @@ const Dashboard = () => {
               <div className="fade-in">
                 <h5>{selectedZone.city}</h5>
                 <p>Number of Projects: {selectedZone.numberOfProjects}</p>
-                <p>Completion Status:</p>
-                <ul>
-                  <li>CRR 1: {selectedZone.completion['1']}</li>
-                  <li>CRR 2: {selectedZone.completion['2']}</li>
-                  <li>CRR 3: {selectedZone.completion['3']}</li>
-                  <li>CRR 4: {selectedZone.completion['4']}</li>
-                </ul>
+                
               </div>
             ) : (
               <p className="text-center fade-in">

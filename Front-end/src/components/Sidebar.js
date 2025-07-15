@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fa';
 import './Sidebar.css';
 import DashboardPage from '../pages/Dashboard';
+import Projects from './Projects';
 
 const Sidebar = () => {
   const [activeItem, setActiveItem] = useState('Dashboard');
@@ -34,7 +35,7 @@ const Sidebar = () => {
       case 'Dashboard':
         return <DashboardPage />;
       case 'Projects':
-        return <div className="content"><h2>Projects</h2><p>Manage your projects here.</p></div>;
+        return <Projects />;
       case 'Settings':
         return <div className="content"><h2>Settings</h2><p>Configure your settings.</p></div>;
       default:
