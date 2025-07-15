@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
-import './ProjInfo.css'; // Assuming you have a CSS file for styling
+import './ProjInfo.css'; // Your CSS file
 import { useNavigate } from 'react-router-dom';
 
 const NewProjectForm = () => {
-  const navigate = useNavigate(); // ← Create navigate function
-  const [error, setError] = useState(null); // State for error handling
+  const navigate = useNavigate();
+  const [error, setError] = useState(null);
   const [reviewTeam, setReviewTeam] = useState([]);
   const [interviewTeam, setInterviewTeam] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
@@ -23,13 +23,12 @@ const NewProjectForm = () => {
   const interviewRoleRef = useRef(null);
 
   const handleBack = () => {
-    navigate(-1); // ← Go back to the previous page
+    navigate(-1);
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
 
-    // Collect form data
     const formData = {
       'responsible office': responsibleOfficeRef.current.value,
       'name project': projectNameRef.current.value,
@@ -38,14 +37,21 @@ const NewProjectForm = () => {
       manager: managerRef.current.value,
       'manager constructor': constructorManagerRef.current.value,
       'project scope': projectScopeRef.current.value,
-      'review team members': reviewTeam.map(member => `${member.name}: ${member.role}`),
-      'project members interviewed': interviewTeam.map(member => `${member.name}: ${member.role}`)
+      'review team members': reviewTeam.map((member) => `${member.name}: ${member.role}`),
+      'project members interviewed': interviewTeam.map((member) => `${member.name}: ${member.role}`),
     };
 
-    // Validation
-    if (!formData['responsible office'] || !formData['name project'] || !formData['number project'] ||
-        !formData['review date'] || !formData.manager || !formData['manager constructor'] ||
-        !formData['project scope'] || reviewTeam.length === 0 || interviewTeam.length === 0) {
+    if (
+      !formData['responsible office'] ||
+      !formData['name project'] ||
+      !formData['number project'] ||
+      !formData['review date'] ||
+      !formData.manager ||
+      !formData['manager constructor'] ||
+      !formData['project scope'] ||
+      reviewTeam.length === 0 ||
+      interviewTeam.length === 0
+    ) {
       setError('All fields are required to proceed to the CRR questions.');
       return;
     }
@@ -53,9 +59,7 @@ const NewProjectForm = () => {
     try {
       const response = await fetch('http://localhost:5000/api/projects/create', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -64,10 +68,10 @@ const NewProjectForm = () => {
       }
 
       const data = await response.json();
-      console.log('Project created:', data); // Log the response for debugging
-      navigate('/crr-Section1'); // Navigate to the next page on success
+      console.log('Project created:', data);
+      navigate('/crr-Section1');
     } catch (err) {
-      setError(err.message); // Set error state for display
+      setError(err.message);
       console.error('Error:', err);
     }
   };
@@ -115,11 +119,9 @@ const NewProjectForm = () => {
 
   const deleteMember = (type, index) => {
     if (type === 'review') {
-      const updatedTeam = reviewTeam.filter((_, i) => i !== index);
-      setReviewTeam(updatedTeam);
+      setReviewTeam(reviewTeam.filter((_, i) => i !== index));
     } else if (type === 'interview') {
-      const updatedTeam = interviewTeam.filter((_, i) => i !== index);
-      setInterviewTeam(updatedTeam);
+      setInterviewTeam(interviewTeam.filter((_, i) => i !== index));
     }
   };
 
@@ -131,35 +133,51 @@ const NewProjectForm = () => {
 
         <form className="row g-4" onSubmit={handleSubmit}>
           <div className="col-md-6">
-            <label className="form-label">Responsible Office <span className="text-danger">*</span></label>
+            <label className="form-label">
+              Responsible Office <span className="text-danger">*</span>
+            </label>
             <input type="text" className="form-control" placeholder="Enter responsible office" ref={responsibleOfficeRef} required />
 
-            <label className="form-label mt-3">Name <span className="text-danger">*</span></label>
+            <label className="form-label mt-3">
+              Name <span className="text-danger">*</span>
+            </label>
             <input type="text" className="form-control" placeholder="Enter project name" ref={projectNameRef} required />
 
-            <label className="form-label mt-3">Number <span className="text-danger">*</span></label>
+            <label className="form-label mt-3">
+              Number <span className="text-danger">*</span>
+            </label>
             <input type="text" className="form-control" placeholder="Enter project number" ref={projectNumberRef} required />
 
-            <label className="form-label mt-3">Review Date <span className="text-danger">*</span></label>
+            <label className="form-label mt-3">
+              Review Date <span className="text-danger">*</span>
+            </label>
             <input type="date" className="form-control" ref={reviewDateRef} required />
           </div>
 
           <div className="col-md-6">
-            <label className="form-label">Manager <span className="text-danger">*</span></label>
+            <label className="form-label">
+              Manager <span className="text-danger">*</span>
+            </label>
             <input type="text" className="form-control" placeholder="Enter Manager name" ref={managerRef} required />
 
-            <label className="form-label mt-3">Constructor Manager <span className="text-danger">*</span></label>
+            <label className="form-label mt-3">
+              Constructor Manager <span className="text-danger">*</span>
+            </label>
             <input type="text" className="form-control" placeholder="Enter Constructor Manager name" ref={constructorManagerRef} required />
 
-            <label className="form-label mt-3">Project Scope <span className="text-danger">*</span></label>
+            <label className="form-label mt-3">
+              Project Scope <span className="text-danger">*</span>
+            </label>
             <textarea className="form-control" rows="3" placeholder="Enter project scope details" ref={projectScopeRef} required></textarea>
           </div>
 
           {/* Review Team Member Section */}
           <div className="col-md-6 mt-4">
-            <label className="form-label">Review team member <span className="text-danger">*</span></label>
-            <div className="input-group mb-3">
-              <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef}/>
+            <label className="form-label">
+              Review team member <span className="text-danger">*</span>
+            </label>
+            <div className="input-group mb-3 team-input-group">
+              <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef} />
               <select className="form-select" defaultValue="" ref={reviewRoleRef}>
                 <option value="" disabled></option>
                 <option>CM</option>
@@ -170,9 +188,11 @@ const NewProjectForm = () => {
                 <option>QA/QC</option>
                 <option>Other</option>
               </select>
-              <button type="button" className="btn btn-primary" onClick={() => {
-                addOrUpdateMember('review', reviewNameRef.current.value, reviewRoleRef.current.value);
-              }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => addOrUpdateMember('review', reviewNameRef.current.value, reviewRoleRef.current.value)}
+              >
                 {editType === 'review' && editIndex !== null ? 'Update' : 'Add'}
               </button>
             </div>
@@ -181,18 +201,10 @@ const NewProjectForm = () => {
                 <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                   {member.name} - {member.role}
                   <div>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-warning mx-2"
-                      onClick={() => startEdit('review', index)}
-                    >
+                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('review', index)}>
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-danger"
-                      onClick={() => deleteMember('review', index)}
-                    >
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('review', index)}>
                       Delete
                     </button>
                   </div>
@@ -203,8 +215,10 @@ const NewProjectForm = () => {
 
           {/* Project Team Member Interviewed Section */}
           <div className="col-md-6 mt-4">
-            <label className="form-label">Project team member interviewed <span className="text-danger">*</span></label>
-            <div className="input-group mb-3">
+            <label className="form-label">
+              Project team member interviewed <span className="text-danger">*</span>
+            </label>
+            <div className="input-group mb-3 team-input-group">
               <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} />
               <select className="form-select" defaultValue="" ref={interviewRoleRef}>
                 <option value="" disabled></option>
@@ -216,9 +230,11 @@ const NewProjectForm = () => {
                 <option>QA/QC</option>
                 <option>Other</option>
               </select>
-              <button type="button" className="btn btn-primary" onClick={() => {
-                addOrUpdateMember('interview', interviewNameRef.current.value, interviewRoleRef.current.value);
-              }}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => addOrUpdateMember('interview', interviewNameRef.current.value, interviewRoleRef.current.value)}
+              >
                 {editType === 'interview' && editIndex !== null ? 'Update' : 'Add'}
               </button>
             </div>
@@ -227,18 +243,10 @@ const NewProjectForm = () => {
                 <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                   {member.name} - {member.role}
                   <div>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-warning mx-2"
-                      onClick={() => startEdit('interview', index)}
-                    >
+                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('interview', index)}>
                       Edit
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-danger"
-                      onClick={() => deleteMember('interview', index)}
-                    >
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('interview', index)}>
                       Delete
                     </button>
                   </div>
@@ -247,12 +255,20 @@ const NewProjectForm = () => {
             </ul>
           </div>
 
-          {error && <div className="alert alert-danger">{error}</div>} {/* Display error if exists */}
+          {error && (
+            <div className="alert alert-danger" style={{ marginTop: '20px' }}>
+              {error}
+            </div>
+          )}
 
           <div className="form-footer d-flex justify-content-between align-items-center mt-4">
-            <button type="button" className="btn btn-secondary" onClick={handleBack}>Back</button>
+            <button type="button" className="btn btn-secondary" onClick={handleBack}>
+              Back
+            </button>
             <div className="text-muted small">All fields are required to proceed to the CRR questions</div>
-            <button type="submit" className="btn btn-primary">Next</button>
+            <button type="submit" className="btn btn-primary">
+              Next
+            </button>
           </div>
         </form>
       </div>

@@ -1,10 +1,10 @@
 .form-page {
-background: linear-gradient(135deg, #efd6bb, #e6ecf0);  min-height: 100vh;
+  background: linear-gradient(135deg, #efd6bb, #e6ecf0);
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 10px 20px;
-
   font-family: 'Inter', sans-serif;
 }
 
@@ -15,7 +15,7 @@ background: linear-gradient(135deg, #efd6bb, #e6ecf0);  min-height: 100vh;
   max-width: 1000px;
   width: 100%;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-  border: 1px solid #0d0e0e;
+  border: 1px solid #e2e8f0;
 }
 
 .form-title {
@@ -43,7 +43,8 @@ background: linear-gradient(135deg, #efd6bb, #e6ecf0);  min-height: 100vh;
   font-family: 'Inter', sans-serif;
 }
 
-.form-control, .form-select {
+.form-control,
+.form-select {
   border: 1px solid #d1d5db;
   border-radius: 8px;
   padding: 8px 12px;
@@ -53,7 +54,8 @@ background: linear-gradient(135deg, #efd6bb, #e6ecf0);  min-height: 100vh;
   height: 36px;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -74,27 +76,30 @@ textarea.form-control {
 .input-group.team-input-group .form-control {
   flex: 2;
   min-width: 150px;
+  height: 36px;
 }
 
 .input-group.team-input-group .form-select {
   flex: 1;
   min-width: 100px;
+  height: 36px;
 }
 
 .input-group.team-input-group .btn-primary {
-  flex: 0.5;
-  min-width: 80px;
+  flex: 0 0 70px; /* fixed smaller width */
   background-color: #3b82f6;
-  border-color: #212428;
-  border-radius: 6px;
+  border-color: #3b82f6;
+  border-radius: 60px;
   padding: 6px 12px;
   font-size: 13px;
   font-weight: 500;
   transition: background-color 0.2s ease, transform 0.1s ease;
-  height: 36px;
+  height: 35px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 20px;
+  cursor: pointer;
 }
 
 .input-group.team-input-group .btn-primary:hover {
@@ -203,11 +208,11 @@ textarea.form-control {
   .form-container {
     padding: 24px;
   }
-  
+
   .form-title {
     font-size: 24px;
   }
-  
+
   .form-subtitle {
     font-size: 14px;
   }
@@ -224,5 +229,10 @@ textarea.form-control {
     width: 100%;
     min-width: auto;
     height: 40px;
+    margin-bottom: 8px;
+  }
+
+  .input-group.team-input-group .btn-primary {
+    margin-bottom: 0;
   }
 }
