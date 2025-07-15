@@ -102,3 +102,34 @@ background: linear-gradient(135deg, #efd6bb, #e6ecf0);}
 .project-modal .modal-footer {
     display: none;
 }
+.project-details {
+  font-size: 0.95rem;
+}
+.detail-item:last-child {
+  border-bottom: none;
+}
+.project-details .detail-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}.project-details-horizontal {
+  font-size: 0.95rem;
+}
+
+.detail-row {
+  transition: background-color 0.2s ease;
+}
+
+.detail-row:hover {
+  background-color: #f8f9fa; /* gris clair au survol */
+}
+
+.detail-row .text-dark {
+  max-width: 50%;
+  overflow-wrap: anywhere;
+}
+.project-details-horizontal .detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
