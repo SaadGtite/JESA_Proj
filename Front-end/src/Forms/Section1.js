@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import './Section1.css';
+import { useParams} from 'react-router-dom';
 
 const Section1 = () => {
   const [questions, setQuestions] = useState([

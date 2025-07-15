@@ -4,11 +4,19 @@ import { useNavigate } from 'react-router-dom';
 
 const NewProjectForm = () => {
   const navigate = useNavigate(); // ← Create navigate function
+  const [error, setError] = useState(null); // State for error handling
   const [reviewTeam, setReviewTeam] = useState([]);
   const [interviewTeam, setInterviewTeam] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [editType, setEditType] = useState(null);
 
+  const responsibleOfficeRef = useRef(null);
+  const projectNameRef = useRef(null);
+  const projectNumberRef = useRef(null);
+  const reviewDateRef = useRef(null);
+  const managerRef = useRef(null);
+  const constructorManagerRef = useRef(null);
+  const projectScopeRef = useRef(null);
   const reviewNameRef = useRef(null);
   const reviewRoleRef = useRef(null);
   const interviewNameRef = useRef(null);
@@ -17,21 +25,51 @@ const NewProjectForm = () => {
   const handleBack = () => {
     navigate(-1); // ← Go back to the previous page
   };
-  const handleNext = (e) => {
-    e.preventDefault();
-    const responsibleOffice = e.target.querySelector('div.col-md-6 input:nth-child(2)').value;
-    const projectName = e.target.querySelector('div.col-md-6 input:nth-child(4)').value;
-    const projectNumber = e.target.querySelector('div.col-md-6 input:nth-child(6)').value;
-    const reviewDate = e.target.querySelector('div.col-md-6 input:nth-child(8)').value;
-    const manager = e.target.querySelector('div.col-md-6:nth-child(2) input:nth-child(2)').value;
-    const constructorManager = e.target.querySelector('div.col-md-6:nth-child(2) input:nth-child(4)').value;
-    const projectScope = e.target.querySelector('div.col-md-6:nth-child(2) textarea').value;
 
-    if (!responsibleOffice || !projectName || !projectNumber || !reviewDate || !manager || !constructorManager || !projectScope || reviewTeam.length === 0 || interviewTeam.length === 0) {
-      alert('All fields are required to proceed to the CRR questions.');
+  const handleSubmit = async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    // Collect form data
+    const formData = {
+      'responsible office': responsibleOfficeRef.current.value,
+      'name project': projectNameRef.current.value,
+      'number project': projectNumberRef.current.value,
+      'review date': reviewDateRef.current.value,
+      manager: managerRef.current.value,
+      'manager constructor': constructorManagerRef.current.value,
+      'project scope': projectScopeRef.current.value,
+      'review team members': reviewTeam.map(member => `${member.name}: ${member.role}`),
+      'project members interviewed': interviewTeam.map(member => `${member.name}: ${member.role}`)
+    };
+
+    // Validation
+    if (!formData['responsible office'] || !formData['name project'] || !formData['number project'] ||
+        !formData['review date'] || !formData.manager || !formData['manager constructor'] ||
+        !formData['project scope'] || reviewTeam.length === 0 || interviewTeam.length === 0) {
+      setError('All fields are required to proceed to the CRR questions.');
       return;
     }
-    navigate('/crr-Section1');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/projects/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create project');
+      }
+
+      const data = await response.json();
+      console.log('Project created:', data); // Log the response for debugging
+      navigate('/crr-Section1'); // Navigate to the next page on success
+    } catch (err) {
+      setError(err.message); // Set error state for display
+      console.error('Error:', err);
+    }
   };
 
   const addOrUpdateMember = (type, name, role) => {
@@ -91,38 +129,38 @@ const NewProjectForm = () => {
         <h2 className="form-title">Create New Project</h2>
         <p className="form-subtitle">Enter the project information to begin the CRR validation process</p>
 
-        <form className="row g-4" onSubmit={handleNext}>
+        <form className="row g-4" onSubmit={handleSubmit}>
           <div className="col-md-6">
             <label className="form-label">Responsible Office <span className="text-danger">*</span></label>
-            <input type="text" className="form-control" placeholder="Enter responsible office" required />
+            <input type="text" className="form-control" placeholder="Enter responsible office" ref={responsibleOfficeRef} required />
 
             <label className="form-label mt-3">Name <span className="text-danger">*</span></label>
-            <input type="text" className="form-control" placeholder="Enter project name" required />
+            <input type="text" className="form-control" placeholder="Enter project name" ref={projectNameRef} required />
 
             <label className="form-label mt-3">Number <span className="text-danger">*</span></label>
-            <input type="text" className="form-control" placeholder="Enter project number" required />
+            <input type="text" className="form-control" placeholder="Enter project number" ref={projectNumberRef} required />
 
             <label className="form-label mt-3">Review Date <span className="text-danger">*</span></label>
-            <input type="date" className="form-control" required />
+            <input type="date" className="form-control" ref={reviewDateRef} required />
           </div>
 
           <div className="col-md-6">
             <label className="form-label">Manager <span className="text-danger">*</span></label>
-            <input type="text" className="form-control" placeholder="Enter Manager name" required />
+            <input type="text" className="form-control" placeholder="Enter Manager name" ref={managerRef} required />
 
             <label className="form-label mt-3">Constructor Manager <span className="text-danger">*</span></label>
-            <input type="text" className="form-control" placeholder="Enter Constructor Manager name" required />
+            <input type="text" className="form-control" placeholder="Enter Constructor Manager name" ref={constructorManagerRef} required />
 
             <label className="form-label mt-3">Project Scope <span className="text-danger">*</span></label>
-            <textarea className="form-control" rows="3" placeholder="Enter project scope details" required></textarea>
+            <textarea className="form-control" rows="3" placeholder="Enter project scope details" ref={projectScopeRef} required></textarea>
           </div>
 
           {/* Review Team Member Section */}
           <div className="col-md-6 mt-4">
             <label className="form-label">Review team member <span className="text-danger">*</span></label>
             <div className="input-group mb-3">
-              <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef} required />
-              <select className="form-select" defaultValue="" ref={reviewRoleRef} required>
+              <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef}/>
+              <select className="form-select" defaultValue="" ref={reviewRoleRef}>
                 <option value="" disabled></option>
                 <option>CM</option>
                 <option>PM</option>
@@ -167,8 +205,8 @@ const NewProjectForm = () => {
           <div className="col-md-6 mt-4">
             <label className="form-label">Project team member interviewed <span className="text-danger">*</span></label>
             <div className="input-group mb-3">
-              <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} required />
-              <select className="form-select" defaultValue="" ref={interviewRoleRef} required>
+              <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} />
+              <select className="form-select" defaultValue="" ref={interviewRoleRef}>
                 <option value="" disabled></option>
                 <option>CM</option>
                 <option>PM</option>
@@ -208,6 +246,8 @@ const NewProjectForm = () => {
               ))}
             </ul>
           </div>
+
+          {error && <div className="alert alert-danger">{error}</div>} {/* Display error if exists */}
 
           <div className="form-footer d-flex justify-content-between align-items-center mt-4">
             <button type="button" className="btn btn-secondary" onClick={handleBack}>Back</button>
