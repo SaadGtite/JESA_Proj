@@ -7,7 +7,6 @@ import './Dashboard.css';
 
 Chart.register(...registerables);
 
-// Exemples de données projet
 const projectData = [
   {
     city: 'Casablanca',
@@ -32,16 +31,32 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!mapRef.current) {
+      // Define Morocco bounds
+      const moroccoBounds = [
+        [27.0, -13.5], // Southwest
+        [36.5, -1.0],  // Northeast
+      ];
+
+      // Initialize map
       mapRef.current = L.map('map', {
         center: [32.0, -6.0],
-        zoom: 6,
+        zoom: 5,
+        maxBounds: moroccoBounds,
+        maxBoundsViscosity: 1.0,
+        worldCopyJump: false,
       });
 
+      // Add tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
       }).addTo(mapRef.current);
 
-      // Ajouter les zones projet
+      // Fit bounds and lock min zoom
+      mapRef.current.fitBounds(moroccoBounds);
+      const fittedZoom = mapRef.current.getZoom();
+      mapRef.current.setMinZoom(fittedZoom);
+
+      // Add project circles
       projectData.forEach((zone) => {
         const circle = L.circle([zone.lat, zone.lng], {
           color: 'blue',
@@ -96,7 +111,7 @@ const Dashboard = () => {
     <Container fluid>
       <Row>
         <Col md={8}>
-          <div id="map" style={{ height: '600px', borderRadius: '20px' }}></div>
+          <div id="map" style={{ height: '600px', borderRadius: '20px', overflow: 'hidden', border: '2px solid #ccc' }}></div>
         </Col>
         <Col md={4}>
           <Card className="project-details-card mt-3">
@@ -105,7 +120,6 @@ const Dashboard = () => {
               <div className="fade-in">
                 <h5>{selectedZone.city}</h5>
                 <p>Number of Projects: {selectedZone.numberOfProjects}</p>
-                
               </div>
             ) : (
               <p className="text-center fade-in">
