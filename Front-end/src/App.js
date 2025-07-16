@@ -18,8 +18,9 @@ function App() {
         <Route path="/home" element={<HomePage /> }  />
         <Route path="/new-project" element={<NewProjectForm />} />
         <Route path="/crr-Section1" element={<Section1 />} />
-         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        {/* Add more routes as needed */}
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/edit/:id" element={<NewProjectForm />} />
+        <Route path="/projects/:projectId/crrs/:crrId/section1" element={<Section1 />} />
       </Routes>
     </Router>
   );

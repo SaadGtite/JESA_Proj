@@ -17,7 +17,7 @@ const userRoutes = require('./routes/User.js');
 const projectRouter = require('./routes/project.js'); // Ensure this file exists
 
 app.use('/api/users', userRoutes);
-app.use('/api/projects', projectRouter); // Ensure this line is present
+app.use('/api/projects', projectRouter); 
 
 app.get('/', (req, res) => {
   res.send('Hello from backend!');
