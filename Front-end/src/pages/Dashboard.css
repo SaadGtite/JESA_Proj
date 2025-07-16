@@ -71,8 +71,12 @@
     transform: translateY(0);
   }
 }
-
-#map {
-  border: 2px solid #ccc;
+#morocco-map {
+  height: 500px;
+  width: 100%;
+  max-width: 100%;
   border-radius: 10px;
+  border: 2px solid #ccc;
+  overflow: hidden;
 }
+
