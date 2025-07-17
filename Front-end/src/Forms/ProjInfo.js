@@ -75,6 +75,33 @@ const NewProjectForm = () => {
       console.error('Error:', err);
     }
   };
+  const { id } = useParams();
+  useEffect(() => {
+  if (id) {
+    fetch(`http://localhost:5000/api/projects/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        // Pré-remplir les champs
+        if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'];
+        if (projectNameRef.current) projectNameRef.current.value = data['name project'];
+        if (projectNumberRef.current) projectNumberRef.current.value = data['number project'];
+        if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0,10); // pour input type="date"
+        if (managerRef.current) managerRef.current.value = data.manager;
+        if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'];
+        if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'];
+        setReviewTeam((data['review team members'] || []).map(item => {
+          const [name, role] = item.split(':').map(s => s.trim());
+          return { name, role };
+        }));
+        setInterviewTeam((data['project members interviewed'] || []).map(item => {
+          const [name, role] = item.split(':').map(s => s.trim());
+          return { name, role };
+        }));
+      })
+      .catch(err => console.error('Failed to fetch project for editing:', err));
+  }
+}, [id]);
+
 
   const addOrUpdateMember = (type, name, role) => {
     if (editType === type && editIndex !== null) {

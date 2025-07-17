@@ -21,6 +21,9 @@ function ProjectTable() {
   const [projects, setProjects] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   // Charger les projets depuis le backend au montage
   useEffect(() => {
@@ -32,6 +35,15 @@ function ProjectTable() {
 
   const handleShowModal = (project) => {
     setSelectedProject(project);
+    setEditData({
+      'name project': project['name project'] || '',
+      'project scope': project['project scope'] || '',
+      'responsible office': project['responsible office'] || '',
+      'number project': project['number project'] || '',
+      'manager constructor': project['manager constructor'] || '',
+      'manager': project['manager'] || '',
+      'review date': project['review date'] ? project['review date'].slice(0,10) : '', // YYYY-MM-DD
+    });
     setShowModal(true);
   };
 
@@ -40,13 +52,55 @@ function ProjectTable() {
     setSelectedProject(null);
   };
 
-  const handleEdit = (e, projectId) => { e.stopPropagation(); alert(`Editing project ID: ${projectId}`); };
-  const handleDelete = (e, projectId) => { e.stopPropagation(); if (window.confirm('Are you sure?')) { setProjects(projects.filter(p => p._id !== projectId)); } };
-  const handleExport = (e, projectId) => { e.stopPropagation(); alert(`Exporting project ID: ${projectId}`); };
+  const handleEditSave = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${selectedProject._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
+
+      if (!res.ok) throw new Error('Update failed');
+
+      const updatedProject = await res.json();
+
+      setProjects(projects.map(p => p._id === updatedProject._id ? updatedProject : p));
+      setMessage('Project updated successfully!');
+      setShowModal(false);
+
+      setTimeout(() => navigate('/home'), 1000);
+
+    } catch (error) {
+      console.error('Failed to update project:', error);
+      alert('Failed to update project');
+    }
+  };
+
+  const handleDelete = async (e, projectId) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure about deleting the project?')) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Delete failed');
+        setProjects(projects.filter(p => p._id !== projectId));
+      } catch (err) {
+        console.error('Failed to delete project:', err);
+        alert('Failed to delete project');
+      }
+    }
+  };
+
+  const handleExport = (e, projectId) => {
+    e.stopPropagation();
+    alert(`Exporting project ID: ${projectId}`);
+  };
 
   return (
     <div className="container-fluid py-4 project-dashboard">
       <h2 className="mb-4 dashboard-heading">Projects Dashboard</h2>
+      {message && <div style={{ color: 'green' }}>{message}</div>}
       <div className="table-container shadow-sm">
         <Table responsive hover className="project-table align-middle">
           <thead className="table-header">
@@ -59,8 +113,8 @@ function ProjectTable() {
           </thead>
           <tbody>
             {projects.map((project) => (
-              <tr key={project._id} onClick={() => handleShowModal(project)}>
-                <td className="project-name-cell">{project['name project']}</td>
+              <tr key={project._id}>
+                <td>{project['name project']}</td>
                 <td className="text-muted">{project['project scope']}</td>
                 <td className="text-muted">{formatDate(project['review date'])}</td>
                 <td className="d-flex justify-content-between align-items-center">
