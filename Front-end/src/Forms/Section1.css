@@ -1,14 +1,30 @@
+html, body {
+  height: 100%;
+  overflow: auto;
+}
+
 /* Container principal */
 .crr-section {
-  max-width: 1200px;
+  min-height: auto;
+  background-color: #fcfcfc;
   margin: 0 auto;
   padding: 20px;
   font-family: 'Segoe UI', sans-serif;
   color: #333;
-  min-height: 100vh; /* Minimum height */
-  overflow-y: auto; /* Enable scrolling */
-  height: auto; /* Allow growth */
-  box-sizing: border-box; /* Include padding */
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Project card */
+.project-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 16px;
+  max-width: 1200px; /* Increased from 1000px to make the card wider */
+  width: 90%; /* Use 90% of available width up to max-width */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  margin: 0 auto 20px auto;
 }
 
 /* Titre principal */
@@ -19,17 +35,29 @@ h2 {
   font-weight: 600;
 }
 
+/* Project info grid */
+.project-info {
+  background-color: #deecfa;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  padding: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  font-family: 'Inter', sans-serif;
+}
+
 /* Conteneur des questions */
 .questions-section {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  height: auto; /* Ensure growth */
+  height: auto;
 }
 
 /* Carte de chaque question */
 .question-card {
-  background-color: #f7f9fc;
+  background-color: #dfecfe;
   border: 1px solid #cbd5e0;
   border-radius: 12px;
   padding: 20px;
@@ -54,7 +82,7 @@ h2 {
   color: #555;
 }
 
-/* Liste ordonnée dans les cartes (si utilisée) */
+/* Liste ordonnée dans les cartes */
 .question-card ol {
   padding-left: 20px;
   margin: 10px 0;
@@ -66,62 +94,48 @@ h2 {
 }
 
 /* Styles pour les textarea */
-textarea {
+textarea.form-control {
   width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 8px;
-  margin-top: 10px;
-  resize: vertical;
+  padding: 8px 12px;
   font-size: 14px;
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;
+  color: #1e293b;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;
+  min-height: 80px;
 }
 
-textarea:focus {
-  border-color: #457b9d;
+textarea.form-control:focus {
   outline: none;
-  box-shadow: 0 0 5px rgba(69, 123, 157, 0.3);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Styles pour les labels et strong */
-strong {
-  display: block;
-  margin-top: 10px;
-  color: #333;
+/* Styles pour les labels */
+.form-label {
   font-weight: 500;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 500;
-  color: #264653;
+  font-size: 14px;
+  color: #1e293b;
+  margin-bottom: 8px;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Styles pour les inputs texte */
-.question-card input[type="text"] {
+.question-card input.form-control {
   width: 100%;
-  border: 1px solid #ccc;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 8px;
-  margin-top: 4px;
-  margin-bottom: 8px;
+  padding: 8px 12px;
   font-size: 14px;
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;
+  color: #1e293b;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.question-card input[type="text"]:focus {
-  border-color: #457b9d;
+.question-card input.form-control:focus {
   outline: none;
-  box-shadow: 0 0 5px rgba(69, 123, 157, 0.3);
-}
-
-.question-card input[type="text"]:disabled {
-  background-color: #f0f0f0;
-  opacity: 0.8;
-  cursor: not-allowed;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 /* Styles pour les radio et checkbox */
@@ -157,100 +171,77 @@ input[type="checkbox"]:checked + label {
   color: #fff;
 }
 
-/* Barre de progression (si utilisée) */
-.progress-bar {
-  width: 100%;
-  background-color: #e0e0e0;
-  border-radius: 10px;
-  overflow: hidden;
-  height: 16px;
-  margin: 10px 0;
-}
-
-.progress-bar .filled {
-  height: 100%;
-  background-color: #457b9d;
-  width: 0%;
-  transition: width 0.3s ease;
-  border-radius: 10px;
-}
-
 /* Styles pour les boutons */
-button {
-  border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.btn-primary {
-  background-color: #457b9d;
-  color: white;
-  margin-top: 20px;
-}
-
-.btn-primary:hover {
-  background-color: #35607a;
-}
-
-.btn-outline {
-  background-color: white;
-  border: 1px solid #457b9d;
-  color: #457b9d;
-  margin-right: 8px;
-}
-
-.btn-outline:hover {
-  background-color: #e8f0f7;
-}
-
-/* Topbar */
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
-.topbar-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-/* Informations du projet */
-.project-info {
-  background-color: #f1faee;
-  border: 1px solid #cbd5e0;
+button.btn-primary {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
   border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 10px;
+  padding: 10px 20px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  cursor: pointer;
+}
+
+button.btn-primary:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
 }
 
 /* Style pour les cartes inactives */
 .inactive-card {
   background-color: #e0e0e0 !important;
   opacity: 0.7;
-  pointer-events: none;
+  pointer-events: all;
 }
 
-/* Score display */
-.crr-section p {
-  font-size: 16px;
-  color: #264653;
-  margin-bottom: 20px;
+/* List group for team members */
+.list-group {
+  margin-top: 8px;
+  max-height: 150px;
+  overflow-y: auto;
 }
 
-/* Save message */
-.crr-section span {
-  margin-left: 10px;
+.list-group-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 12px 16px;
   font-size: 14px;
-  color: #333;
+  color: #1e293b;
+  background-color: #f8fafc;
+  transition: background-color 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: #f1f5f9;
+}
+
+/* Save bar at bottom */
+.bottom-save-bar {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #f1faee;
+  border-top: 1px solid #ccc;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+.bottom-save-bar p {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #1d3557;
+}
+
+.bottom-save-bar span {
+  display: block;
+  margin-top: 8px;
+  color: #2a2a2a;
+  font-size: 14px;
 }
 
 /* Responsivité */
@@ -260,8 +251,17 @@ button {
     max-width: 100%;
   }
 
+  .project-card {
+    padding: 15px;
+    width: 100%;
+  }
+
   h2 {
     font-size: 24px;
+  }
+
+  .project-info {
+    grid-template-columns: 1fr;
   }
 
   .question-card {
@@ -276,29 +276,18 @@ button {
     font-size: 14px;
   }
 
-  .question-card input[type="text"],
-  textarea {
+  .question-card input.form-control,
+  textarea.form-control {
     font-size: 13px;
-    padding: 6px;
-  }
-
-  button {
     padding: 6px 12px;
+  }
+
+  button.btn-primary {
+    padding: 8px 16px;
     font-size: 13px;
   }
 
-  .topbar {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-
-  .topbar-buttons {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .project-info {
-    grid-template-columns: 1fr;
+  .list-group {
+    max-height: 120px;
   }
 }

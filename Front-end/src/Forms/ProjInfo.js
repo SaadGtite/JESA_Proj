@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './ProjInfo.css'; // Your CSS file
-import { useNavigate } from 'react-router-dom';
 
 const NewProjectForm = () => {
   const navigate = useNavigate();
@@ -12,6 +11,7 @@ const NewProjectForm = () => {
   const [editType, setEditType] = useState(null);
 
   const responsibleOfficeRef = useRef(null);
+  const { id } = useParams(); 
   const projectNameRef = useRef(null);
   const projectNumberRef = useRef(null);
   const reviewDateRef = useRef(null);
@@ -93,7 +93,7 @@ const NewProjectForm = () => {
       if (!projectResponse.ok) {
         throw new Error('Failed to create project');
       }
-      if (!response.ok) throw new Error('Failed to create project');
+      if (!projectResponse.ok) throw new Error('Failed to create project');
 
       const projectData = await projectResponse.json();
       const projectId = projectData._id; // Adjust based on your response structure (e.g., projectData.id)

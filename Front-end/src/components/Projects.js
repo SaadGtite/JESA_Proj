@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import { Table, Button, Modal } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
-
 
 const EditIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -48,6 +45,11 @@ const formatDate = (dateString) => {
 
 function ProjectTable() {
   const [projects, setProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('http://localhost:5000/api/projects')
@@ -56,7 +58,6 @@ function ProjectTable() {
       .catch(error => console.error('Error fetching projects:', error));
   }, []);
 
-  const handleDelete = async (e, id) => {
   const handleShowModal = (project) => {
     setSelectedProject(project);
     setEditData({
@@ -66,7 +67,7 @@ function ProjectTable() {
       'number project': project['number project'] || '',
       'manager constructor': project['manager constructor'] || '',
       'manager': project['manager'] || '',
-      'review date': project['review date'] ? project['review date'].slice(0, 10) : '', // YYYY-MM-DD
+      'review date': project['review date'] ? project['review date'].slice(0, 10) : '',
     });
     setShowModal(true);
   };
@@ -100,7 +101,7 @@ function ProjectTable() {
     }
   };
 
-  const handleDelete = async (e, projectId) => {
+  const handleDelete = async (e, id) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
@@ -167,7 +168,7 @@ function ProjectTable() {
                       variant="link"
                       className="action-btn ms-auto"
                       as={Link}
-                      to={`/${project._id}/crrs/${project.crrs[0]._id}`} // Passe projectId et crrId
+                      to={`/${project._id}/crrs/${project.crrs[0]._id}`}
                       style={{ textDecoration: 'none' }}
                     >
                       Proceed <ProceedIcon />
