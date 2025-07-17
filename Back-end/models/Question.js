@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 
 const QuestionSchema = new mongoose.Schema({
   text: { type: String, required: true },
-  actions: { type:String, default: false },
-  referenceDocument: { type:String, default: false },
-  deliverable: { type:String, default: false },
+  actions: { type:String },
+  referenceDocument: { type:String },
+  deliverable: { type:String },
   score: { 
     type: Number, 
     enum: [0, 2.5, 5],
@@ -13,7 +13,7 @@ const QuestionSchema = new mongoose.Schema({
   },
   isNA: { type: Boolean, default: false }, 
   showstopper: { type: Boolean, default: false },
-  comments: { type:String, default: false }
+  comments: { type:String }
 });
 
 module.exports = QuestionSchema;
