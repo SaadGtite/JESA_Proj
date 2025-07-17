@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './ProjInfo.css'; // Your CSS file
+import { useNavigate } from 'react-router-dom';
 
 const NewProjectForm = () => {
   const navigate = useNavigate();
-  const { id } = useParams();
-
   const [error, setError] = useState(null);
   const [reviewTeam, setReviewTeam] = useState([]);
   const [interviewTeam, setInterviewTeam] = useState([]);
@@ -84,22 +83,73 @@ const NewProjectForm = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/projects/create', {
+      // Step 1: Create the project
+      const projectResponse = await fetch('http://localhost:5000/api/projects/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
+      if (!projectResponse.ok) {
+        throw new Error('Failed to create project');
+      }
       if (!response.ok) throw new Error('Failed to create project');
 
-      const data = await response.json();
-      console.log('Project created:', data);
-      navigate('/crr-Section1');
+      const projectData = await projectResponse.json();
+      const projectId = projectData._id; // Adjust based on your response structure (e.g., projectData.id)
+
+      // Step 2: Create the CRR for the project
+      const crrData = {
+        title: projectNameRef.current.value, // Use project name as CRR title (modify if needed)
+      };
+
+      const crrResponse = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(crrData),
+      });
+
+      if (!crrResponse.ok) {
+        throw new Error('Failed to create CRR');
+      }
+
+      const crrDataResponse = await crrResponse.json();
+      console.log('Project created:', projectData);
+      console.log('CRR created:', crrDataResponse);
+
+      // Step 3: Navigate to the next page
+      navigate('/home');
     } catch (err) {
       setError(err.message);
       console.error('Error:', err);
     }
   };
+
+  useEffect(() => {
+    if (id) {
+      fetch(`http://localhost:5000/api/projects/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          // Pré-remplir les champs
+          if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'];
+          if (projectNameRef.current) projectNameRef.current.value = data['name project'];
+          if (projectNumberRef.current) projectNumberRef.current.value = data['number project'];
+          if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0,10); // pour input type="date"
+          if (managerRef.current) managerRef.current.value = data.manager;
+          if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'];
+          if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'];
+          setReviewTeam((data['review team members'] || []).map(item => {
+            const [name, role] = item.split(':').map(s => s.trim());
+            return { name, role };
+          }));
+          setInterviewTeam((data['project members interviewed'] || []).map(item => {
+            const [name, role] = item.split(':').map(s => s.trim());
+            return { name, role };
+          }));
+        })
+        .catch(err => console.error('Failed to fetch project for editing:', err));
+    }
+  }, [id]);
 
   const addOrUpdateMember = (type, name, role) => {
     if (editType === type && editIndex !== null) {

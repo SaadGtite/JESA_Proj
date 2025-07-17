@@ -1,42 +1,60 @@
+/* Container principal */
 .crr-section {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   font-family: 'Segoe UI', sans-serif;
   color: #333;
+  min-height: 100vh; /* Minimum height */
+  overflow-y: auto; /* Enable scrolling */
+  height: auto; /* Allow growth */
+  box-sizing: border-box; /* Include padding */
 }
 
+/* Titre principal */
 h2 {
   margin-bottom: 25px;
   font-size: 28px;
   color: #1d3557;
+  font-weight: 600;
 }
 
+/* Conteneur des questions */
 .questions-section {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  height: auto; /* Ensure growth */
 }
 
+/* Carte de chaque question */
 .question-card {
   background-color: #f7f9fc;
   border: 1px solid #cbd5e0;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+}
+
+.question-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .question-card h4 {
   font-size: 20px;
   margin-bottom: 10px;
   color: #264653;
+  font-weight: 500;
 }
 
 .question-card p {
   font-size: 16px;
   margin-bottom: 10px;
+  color: #555;
 }
 
+/* Liste ordonnée dans les cartes (si utilisée) */
 .question-card ol {
   padding-left: 20px;
   margin: 10px 0;
@@ -44,8 +62,10 @@ h2 {
 
 .question-card li {
   margin-bottom: 6px;
+  color: #666;
 }
 
+/* Styles pour les textarea */
 textarea {
   width: 100%;
   border: 1px solid #ccc;
@@ -54,38 +74,73 @@ textarea {
   margin-top: 10px;
   resize: vertical;
   font-size: 14px;
-}
-
-strong {
-  display: block;
-  margin-top: 10px;
-  color: #333;
-}
-
-input[type="radio"],
-input[type="checkbox"] {
-  margin-right: 6px;
-}
-
-label {
-  margin-right: 15px;
-  font-size: 14px;
-}
-
-input[type="checkbox"] {
-  accent-color: #e63946;
-}
-
-.custom-checkbox {
-  transform: scale(1.2);
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 textarea:focus {
   border-color: #457b9d;
   outline: none;
+  box-shadow: 0 0 5px rgba(69, 123, 157, 0.3);
 }
 
-/* Showstopper tag style */
+/* Styles pour les labels et strong */
+strong {
+  display: block;
+  margin-top: 10px;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #264653;
+}
+
+/* Styles pour les inputs texte */
+.question-card input[type="text"] {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.question-card input[type="text"]:focus {
+  border-color: #457b9d;
+  outline: none;
+  box-shadow: 0 0 5px rgba(69, 123, 157, 0.3);
+}
+
+.question-card input[type="text"]:disabled {
+  background-color: #f0f0f0;
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/* Styles pour les radio et checkbox */
+input[type="radio"],
+input[type="checkbox"] {
+  margin-right: 6px;
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  accent-color: #e63946;
+  transform: scale(1.2);
+}
+
+input[type="radio"] {
+  accent-color: #457b9d;
+}
+
+/* Style pour les labels associés aux checkbox */
 input[type="checkbox"] + label {
   display: inline-block;
   padding: 4px 8px;
@@ -94,6 +149,7 @@ input[type="checkbox"] + label {
   color: #1d3557;
   font-size: 13px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 input[type="checkbox"]:checked + label {
@@ -101,12 +157,7 @@ input[type="checkbox"]:checked + label {
   color: #fff;
 }
 
-/* Custom radio buttons (optional polish) */
-input[type="radio"] {
-  accent-color: #457b9d;
-}
-
-/* Progress bar style (if needed later) */
+/* Barre de progression (si utilisée) */
 .progress-bar {
   width: 100%;
   background-color: #e0e0e0;
@@ -124,13 +175,14 @@ input[type="radio"] {
   border-radius: 10px;
 }
 
-/* Buttons */
+/* Styles pour les boutons */
 button {
   border: none;
   border-radius: 6px;
   padding: 8px 14px;
   font-size: 14px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .btn-primary {
@@ -154,11 +206,13 @@ button {
   background-color: #e8f0f7;
 }
 
+/* Topbar */
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
+  width: 100%;
 }
 
 .topbar-buttons {
@@ -166,6 +220,7 @@ button {
   gap: 10px;
 }
 
+/* Informations du projet */
 .project-info {
   background-color: #f1faee;
   border: 1px solid #cbd5e0;
@@ -177,29 +232,73 @@ button {
   gap: 10px;
 }
 
-/* New styles for editable fields inside question-card */
-.question-card label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 500;
-}
-
-.question-card input[type="text"] {
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 8px;
-  margin-top: 4px;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.question-card input[type="text"]:focus {
-  border-color: #457b9d;
-  outline: none;
-}
-
+/* Style pour les cartes inactives */
 .inactive-card {
   background-color: #e0e0e0 !important;
   opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Score display */
+.crr-section p {
+  font-size: 16px;
+  color: #264653;
+  margin-bottom: 20px;
+}
+
+/* Save message */
+.crr-section span {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Responsivité */
+@media (max-width: 768px) {
+  .crr-section {
+    padding: 15px;
+    max-width: 100%;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  .question-card {
+    padding: 15px;
+  }
+
+  .question-card h4 {
+    font-size: 18px;
+  }
+
+  .question-card p {
+    font-size: 14px;
+  }
+
+  .question-card input[type="text"],
+  textarea {
+    font-size: 13px;
+    padding: 6px;
+  }
+
+  button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .topbar-buttons {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .project-info {
+    grid-template-columns: 1fr;
+  }
 }

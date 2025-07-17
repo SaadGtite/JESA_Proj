@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { Table, Button, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import './Projects.css';
 
@@ -55,6 +57,50 @@ function ProjectTable() {
   }, []);
 
   const handleDelete = async (e, id) => {
+  const handleShowModal = (project) => {
+    setSelectedProject(project);
+    setEditData({
+      'name project': project['name project'] || '',
+      'project scope': project['project scope'] || '',
+      'responsible office': project['responsible office'] || '',
+      'number project': project['number project'] || '',
+      'manager constructor': project['manager constructor'] || '',
+      'manager': project['manager'] || '',
+      'review date': project['review date'] ? project['review date'].slice(0, 10) : '', // YYYY-MM-DD
+    });
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProject(null);
+  };
+
+  const handleEdit = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${selectedProject._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editData),
+      });
+
+      if (!res.ok) throw new Error('Update failed');
+
+      const updatedProject = await res.json();
+
+      setProjects(projects.map(p => p._id === updatedProject._id ? updatedProject : p));
+      setMessage('Project updated successfully!');
+      setShowModal(false);
+
+      setTimeout(() => navigate('/home'), 1000);
+
+    } catch (error) {
+      console.error('Failed to update project:', error);
+      alert('Failed to update project');
+    }
+  };
+
+  const handleDelete = async (e, projectId) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
@@ -116,14 +162,19 @@ function ProjectTable() {
                       <ExportIcon />
                     </Button>
                   </div>
-                  <Button
-                    variant="link"
-                    className="action-btn ms-auto"
-                    as={Link}
-                    to={`/section1/${project._id}`}
-                  >
-                    Proceed <ProceedIcon />
-                  </Button>
+                  {project.crrs && project.crrs.length > 0 ? (
+                    <Button
+                      variant="link"
+                      className="action-btn ms-auto"
+                      as={Link}
+                      to={`/${project._id}/crrs/${project.crrs[0]._id}`} // Passe projectId et crrId
+                      style={{ textDecoration: 'none' }}
+                    >
+                      Proceed <ProceedIcon />
+                    </Button>
+                  ) : (
+                    <span>No CRR available</span>
+                  )}
                 </td>
               </tr>
             ))}
