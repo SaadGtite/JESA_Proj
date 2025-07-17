@@ -3,15 +3,18 @@ import { Table, Button, Modal } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
 
+// Icons
 const EditIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
   </svg>
 );
 
 const DeleteIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6"></polyline>
     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
     <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -20,7 +23,8 @@ const DeleteIcon = () => (
 );
 
 const ExportIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
     <polyline points="7 10 12 15 17 10"></polyline>
     <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -28,7 +32,8 @@ const ExportIcon = () => (
 );
 
 const ProceedIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M5 12h14"></path>
     <polyline points="12 5 19 12 12 19"></polyline>
   </svg>
@@ -46,9 +51,7 @@ const formatDate = (dateString) => {
 function ProjectTable() {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [editData, setEditData] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,18 +61,8 @@ function ProjectTable() {
       .catch(error => console.error('Error fetching projects:', error));
   }, []);
 
-  const handleShowModal = (project) => {
+  const handleRowClick = (project) => {
     setSelectedProject(project);
-    setEditData({
-      'responsible office': project['responsible office'] || '',
-      'name project': project['name project'] || '',
-      'number project': project['number project'] || '',
-      'review date': project['review date'] ? project['review date'].slice(0, 10) : '',
-      manager: project.manager || '',
-      'manager constructor': project['manager constructor'] || '',
-      'manager': project['manager'] || '',
-      'review date': project['review date'] ? project['review date'].slice(0, 10) : '',
-    });
     setShowModal(true);
   };
 
@@ -79,45 +72,13 @@ function ProjectTable() {
     setEditData({});
   };
 
-  const handleEdit = async () => {
-    try {
-      if (!selectedProject || !selectedProject._id) {
-        console.error('No project selected for update');
-        alert('Please select a project to update');
-        return;
-      }
-
-      console.log('Updating project:', { projectId: selectedProject._id, editData });
-
-      const res = await fetch(`http://localhost:5000/api/projects/${selectedProject._id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editData),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Update response:', errorData);
-        throw new Error(`Update failed: ${errorData.message || res.statusText}`);
-      }
-
-      const updatedProject = await res.json();
-      setProjects(projects.map(p => p._id === updatedProject._id ? updatedProject : p));
-      setMessage('Project updated successfully!');
-      setShowModal(false);
-
-      setTimeout(() => navigate('/home'), 1000);
-    } catch (error) {
-      console.error('Failed to update project:', error);
-      alert(`Failed to update project: ${error.message}`);
-    }
-  };
-
   const handleDelete = async (e, id) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}`, { method: 'DELETE' });
+        const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+          method: 'DELETE'
+        });
         if (!res.ok) throw new Error();
         setProjects(projects.filter(p => p._id !== id));
       } catch {
@@ -146,7 +107,11 @@ function ProjectTable() {
           </thead>
           <tbody>
             {projects.map(project => (
-              <tr key={project._id}>
+              <tr
+                key={project._id}
+                onClick={() => handleRowClick(project)}
+                style={{ cursor: 'pointer' }}
+              >
                 <td>{project['name project']}</td>
                 <td className="text-muted">{project['project scope']}</td>
                 <td className="text-muted">{formatDate(project['review date'])}</td>
@@ -157,6 +122,7 @@ function ProjectTable() {
                       to={`/projinfo/${project._id}`}
                       variant="link"
                       className="action-btn"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <EditIcon />
                     </Button>
@@ -181,12 +147,12 @@ function ProjectTable() {
                       className="action-btn ms-auto"
                       as={Link}
                       to={`/${project._id}/crrs/${project.crrs[0]._id}`}
-                      style={{ textDecoration: 'none' }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       Proceed <ProceedIcon />
                     </Button>
                   ) : (
-                    <span>No CRR available</span>
+                    <span className="text-muted">No CRR available</span>
                   )}
                 </td>
               </tr>
@@ -194,6 +160,32 @@ function ProjectTable() {
           </tbody>
         </Table>
       </div>
+
+      {/* Details Modal */}
+      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Project Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedProject ? (
+            <div className="project-details">
+              <p><strong>Project Name:</strong> {selectedProject['name project']}</p>
+              <p><strong>Project Scope:</strong> {selectedProject['project scope']}</p>
+              <p><strong>Responsible Office:</strong> {selectedProject['responsible office']}</p>
+              <p><strong>Number:</strong> {selectedProject['number project']}</p>
+              <p><strong>Manager Constructor:</strong> {selectedProject['manager constructor']}</p>
+              <p><strong>Manager:</strong> {selectedProject['manager']}</p>
+              <p><strong>Review Date:</strong> {formatDate(selectedProject['review date'])}</p>
+             
+            </div>
+          ) : (
+            <p>No project selected</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }
