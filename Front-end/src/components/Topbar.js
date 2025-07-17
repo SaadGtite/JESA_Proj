@@ -20,8 +20,12 @@ const Topbar = () => {
   return (
     <div className="topbar">
       <div className="topbar-left">
-        <img src={logo} alt="Logo" className="topbar-logo" />
+        <div className="logo-container">
+          <img src={logo} alt="Logo" className="topbar-logo" />
+          <span className="logo-text">Field Services</span>
+        </div>
       </div>
+
 
       <div className="topbar-right">
         <div className="notification-icon">

@@ -6,6 +6,7 @@ import {
 import './Sidebar.css';
 import DashboardPage from '../pages/Dashboard';
 import Projects from './Projects';
+import Settings from './Settings';
 
 const Sidebar = () => {
   const [activeItem, setActiveItem] = useState('Dashboard');
@@ -37,7 +38,7 @@ const Sidebar = () => {
       case 'Projects':
         return <Projects />;
       case 'Settings':
-        return <div className="content"><h2>Settings</h2><p>Configure your settings.</p></div>;
+        return <Settings />;
       default:
         return <div className="content"><h2>Welcome</h2><p>Select an option from the sidebar.</p></div>;
     }
