@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import './ProjInfo.css'; // Your CSS file
-import { useNavigate } from 'react-router-dom';
 
 const NewProjectForm = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+
   const [error, setError] = useState(null);
   const [reviewTeam, setReviewTeam] = useState([]);
   const [interviewTeam, setInterviewTeam] = useState([]);
@@ -22,9 +24,34 @@ const NewProjectForm = () => {
   const interviewNameRef = useRef(null);
   const interviewRoleRef = useRef(null);
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  useEffect(() => {
+    if (id) {
+      fetch(`http://localhost:5000/api/projects/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'];
+          if (projectNameRef.current) projectNameRef.current.value = data['name project'];
+          if (projectNumberRef.current) projectNumberRef.current.value = data['number project'];
+          if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0, 10);
+          if (managerRef.current) managerRef.current.value = data.manager;
+          if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'];
+          if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'];
+
+          setReviewTeam((data['review team members'] || []).map(item => {
+            const [name, role] = item.split(':').map(s => s.trim());
+            return { name, role };
+          }));
+
+          setInterviewTeam((data['project members interviewed'] || []).map(item => {
+            const [name, role] = item.split(':').map(s => s.trim());
+            return { name, role };
+          }));
+        })
+        .catch(err => console.error('Failed to fetch project for editing:', err));
+    }
+  }, [id]);
+
+  const handleBack = () => navigate(-1);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -63,9 +90,7 @@ const NewProjectForm = () => {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create project');
-      }
+      if (!response.ok) throw new Error('Failed to create project');
 
       const data = await response.json();
       console.log('Project created:', data);
@@ -75,58 +100,24 @@ const NewProjectForm = () => {
       console.error('Error:', err);
     }
   };
-  const { id } = useParams();
-  useEffect(() => {
-  if (id) {
-    fetch(`http://localhost:5000/api/projects/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        // Pré-remplir les champs
-        if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'];
-        if (projectNameRef.current) projectNameRef.current.value = data['name project'];
-        if (projectNumberRef.current) projectNumberRef.current.value = data['number project'];
-        if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0,10); // pour input type="date"
-        if (managerRef.current) managerRef.current.value = data.manager;
-        if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'];
-        if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'];
-        setReviewTeam((data['review team members'] || []).map(item => {
-          const [name, role] = item.split(':').map(s => s.trim());
-          return { name, role };
-        }));
-        setInterviewTeam((data['project members interviewed'] || []).map(item => {
-          const [name, role] = item.split(':').map(s => s.trim());
-          return { name, role };
-        }));
-      })
-      .catch(err => console.error('Failed to fetch project for editing:', err));
-  }
-}, [id]);
-
 
   const addOrUpdateMember = (type, name, role) => {
     if (editType === type && editIndex !== null) {
-      if (type === 'review') {
-        const updatedTeam = [...reviewTeam];
-        updatedTeam[editIndex] = { name, role };
-        setReviewTeam(updatedTeam);
-      } else if (type === 'interview') {
-        const updatedTeam = [...interviewTeam];
-        updatedTeam[editIndex] = { name, role };
-        setInterviewTeam(updatedTeam);
-      }
+      const updatedTeam = type === 'review' ? [...reviewTeam] : [...interviewTeam];
+      updatedTeam[editIndex] = { name, role };
+      type === 'review' ? setReviewTeam(updatedTeam) : setInterviewTeam(updatedTeam);
       setEditIndex(null);
       setEditType(null);
     } else if (name && role) {
-      if (type === 'review') {
-        setReviewTeam([...reviewTeam, { name, role }]);
-      } else if (type === 'interview') {
-        setInterviewTeam([...interviewTeam, { name, role }]);
-      }
+      type === 'review'
+        ? setReviewTeam([...reviewTeam, { name, role }])
+        : setInterviewTeam([...interviewTeam, { name, role }]);
     }
+
     if (type === 'review') {
       reviewNameRef.current.value = '';
       reviewRoleRef.current.value = '';
-    } else if (type === 'interview') {
+    } else {
       interviewNameRef.current.value = '';
       interviewRoleRef.current.value = '';
     }
@@ -138,7 +129,7 @@ const NewProjectForm = () => {
     if (type === 'review') {
       reviewNameRef.current.value = reviewTeam[index].name;
       reviewRoleRef.current.value = reviewTeam[index].role;
-    } else if (type === 'interview') {
+    } else {
       interviewNameRef.current.value = interviewTeam[index].name;
       interviewRoleRef.current.value = interviewTeam[index].role;
     }
@@ -147,7 +138,7 @@ const NewProjectForm = () => {
   const deleteMember = (type, index) => {
     if (type === 'review') {
       setReviewTeam(reviewTeam.filter((_, i) => i !== index));
-    } else if (type === 'interview') {
+    } else {
       setInterviewTeam(interviewTeam.filter((_, i) => i !== index));
     }
   };
@@ -160,49 +151,33 @@ const NewProjectForm = () => {
 
         <form className="row g-4" onSubmit={handleSubmit}>
           <div className="col-md-6">
-            <label className="form-label">
-              Responsible Office <span className="text-danger">*</span>
-            </label>
+            <label className="form-label">Responsible Office <span className="text-danger">*</span></label>
             <input type="text" className="form-control" placeholder="Enter responsible office" ref={responsibleOfficeRef} required />
 
-            <label className="form-label mt-3">
-              Name <span className="text-danger">*</span>
-            </label>
+            <label className="form-label mt-3">Name <span className="text-danger">*</span></label>
             <input type="text" className="form-control" placeholder="Enter project name" ref={projectNameRef} required />
 
-            <label className="form-label mt-3">
-              Number <span className="text-danger">*</span>
-            </label>
+            <label className="form-label mt-3">Number <span className="text-danger">*</span></label>
             <input type="text" className="form-control" placeholder="Enter project number" ref={projectNumberRef} required />
 
-            <label className="form-label mt-3">
-              Review Date <span className="text-danger">*</span>
-            </label>
+            <label className="form-label mt-3">Review Date <span className="text-danger">*</span></label>
             <input type="date" className="form-control" ref={reviewDateRef} required />
           </div>
 
           <div className="col-md-6">
-            <label className="form-label">
-              Manager <span className="text-danger">*</span>
-            </label>
+            <label className="form-label">Manager <span className="text-danger">*</span></label>
             <input type="text" className="form-control" placeholder="Enter Manager name" ref={managerRef} required />
 
-            <label className="form-label mt-3">
-              Constructor Manager <span className="text-danger">*</span>
-            </label>
+            <label className="form-label mt-3">Constructor Manager <span className="text-danger">*</span></label>
             <input type="text" className="form-control" placeholder="Enter Constructor Manager name" ref={constructorManagerRef} required />
 
-            <label className="form-label mt-3">
-              Project Scope <span className="text-danger">*</span>
-            </label>
-            <textarea className="form-control" rows="3" placeholder="Enter project scope details" ref={projectScopeRef} required></textarea>
+            <label className="form-label mt-3">Project Scope <span className="text-danger">*</span></label>
+            <textarea className="form-control" rows="3" placeholder="Enter project scope details" ref={projectScopeRef} required />
           </div>
 
-          {/* Review Team Member Section */}
+          {/* Review Team Section */}
           <div className="col-md-6 mt-4">
-            <label className="form-label">
-              Review team member <span className="text-danger">*</span>
-            </label>
+            <label className="form-label">Review team member <span className="text-danger">*</span></label>
             <div className="input-group mb-3 team-input-group">
               <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef} />
               <select className="form-select" defaultValue="" ref={reviewRoleRef}>
@@ -215,11 +190,7 @@ const NewProjectForm = () => {
                 <option>QA/QC</option>
                 <option>Other</option>
               </select>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => addOrUpdateMember('review', reviewNameRef.current.value, reviewRoleRef.current.value)}
-              >
+              <button type="button" className="btn-primary" onClick={() => addOrUpdateMember('review', reviewNameRef.current.value, reviewRoleRef.current.value)}>
                 {editType === 'review' && editIndex !== null ? 'Update' : 'Add'}
               </button>
             </div>
@@ -228,23 +199,17 @@ const NewProjectForm = () => {
                 <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                   {member.name} - {member.role}
                   <div>
-                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('review', index)}>
-                      Edit
-                    </button>
-                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('review', index)}>
-                      Delete
-                    </button>
+                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('review', index)}>Edit</button>
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('review', index)}>Delete</button>
                   </div>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Project Team Member Interviewed Section */}
+          {/* Interview Team Section */}
           <div className="col-md-6 mt-4">
-            <label className="form-label">
-              Project team member interviewed <span className="text-danger">*</span>
-            </label>
+            <label className="form-label">Project team member interviewed <span className="text-danger">*</span></label>
             <div className="input-group mb-3 team-input-group">
               <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} />
               <select className="form-select" defaultValue="" ref={interviewRoleRef}>
@@ -257,11 +222,7 @@ const NewProjectForm = () => {
                 <option>QA/QC</option>
                 <option>Other</option>
               </select>
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => addOrUpdateMember('interview', interviewNameRef.current.value, interviewRoleRef.current.value)}
-              >
+              <button type="button" className="btn-primary" onClick={() => addOrUpdateMember('interview', interviewNameRef.current.value, interviewRoleRef.current.value)}>
                 {editType === 'interview' && editIndex !== null ? 'Update' : 'Add'}
               </button>
             </div>
@@ -270,12 +231,8 @@ const NewProjectForm = () => {
                 <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                   {member.name} - {member.role}
                   <div>
-                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('interview', index)}>
-                      Edit
-                    </button>
-                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('interview', index)}>
-                      Delete
-                    </button>
+                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('interview', index)}>Edit</button>
+                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('interview', index)}>Delete</button>
                   </div>
                 </li>
               ))}
@@ -283,19 +240,13 @@ const NewProjectForm = () => {
           </div>
 
           {error && (
-            <div className="alert alert-danger" style={{ marginTop: '20px' }}>
-              {error}
-            </div>
+            <div className="alert alert-danger mt-3">{error}</div>
           )}
 
           <div className="form-footer d-flex justify-content-between align-items-center mt-4">
-            <button type="button" className="btn btn-secondary" onClick={handleBack}>
-              Back
-            </button>
+            <button type="button" className="btn btn-secondary" onClick={handleBack}>Back</button>
             <div className="text-muted small">All fields are required to proceed to the CRR questions</div>
-            <button type="submit" className="btn btn-primary">
-              Next
-            </button>
+            <button type="submit" className="btn btn-primary">Next</button>
           </div>
         </form>
       </div>

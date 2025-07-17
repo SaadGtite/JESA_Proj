@@ -82,12 +82,9 @@ function LoginPage() {
                 </div>
               </div>
 
-              <div className="form-check mb-3">
-                <input type="checkbox" className="form-check-input" id="rememberMe" />
-                <label className="form-check-label" htmlFor="rememberMe">Remember me</label>
-              </div>
+              
 
-              <button type="submit" className="btn btn-primary w-100">Login</button>
+              <button type="submit" className="btn btn-primary w-100 ">Login</button>
             </form>
 
             <div className="mt-4 d-flex justify-content-between small">
