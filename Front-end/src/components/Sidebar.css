@@ -94,6 +94,7 @@ html, body {
   align-items: center;
   padding: 15px;
   gap: 10px;
+  margin-top: 35px;
   cursor: pointer;
   transition: background 0,1s;
 }
@@ -142,6 +143,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 30px;
   gap: 8px;
   font-weight: 500;
   cursor: pointer;
