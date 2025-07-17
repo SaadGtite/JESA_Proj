@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, Button, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import './Projects.css';
@@ -42,7 +43,7 @@ function ProjectTable() {
       'number project': project['number project'] || '',
       'manager constructor': project['manager constructor'] || '',
       'manager': project['manager'] || '',
-      'review date': project['review date'] ? project['review date'].slice(0,10) : '', // YYYY-MM-DD
+      'review date': project['review date'] ? project['review date'].slice(0, 10) : '', // YYYY-MM-DD
     });
     setShowModal(true);
   };
@@ -52,7 +53,7 @@ function ProjectTable() {
     setSelectedProject(null);
   };
 
-  const handleEditSave = async () => {
+  const handleEdit = async () => {
     try {
       const res = await fetch(`http://localhost:5000/api/projects/${selectedProject._id}`, {
         method: 'PUT',
@@ -123,15 +124,19 @@ function ProjectTable() {
                     <Button variant="link" className="action-btn" onClick={(e) => handleDelete(e, project._id)}><DeleteIcon /></Button>
                     <Button variant="link" className="action-btn" onClick={(e) => handleExport(e, project._id)}><ExportIcon /></Button>
                   </div>
-                  <Button 
-                    variant="link" 
-                    className="action-btn ms-auto" 
-                    as={Link} 
-                    to={`/section1/${project._id}`}
-                    style={{ textDecoration: 'none' }}
-                  >
-                    Proceed <ProceedIcon />
-                  </Button>
+                  {project.crrs && project.crrs.length > 0 ? (
+                    <Button
+                      variant="link"
+                      className="action-btn ms-auto"
+                      as={Link}
+                      to={`/${project._id}/crrs/${project.crrs[0]._id}`} // Passe projectId et crrId
+                      style={{ textDecoration: 'none' }}
+                    >
+                      Proceed <ProceedIcon />
+                    </Button>
+                  ) : (
+                    <span>No CRR available</span>
+                  )}
                 </td>
               </tr>
             ))}

@@ -8,20 +8,18 @@ import Section1 from './Forms/Section1';
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; 
 import ProjectTable from './components/Projects';
 
-
-
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/home" element={<HomePage /> }  />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/new-project" element={<NewProjectForm />} />
         <Route path="/crr-Section1" element={<Section1 />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/edit/:id" element={<NewProjectForm />} />
-        <Route path="/projects/:projectId/crrs/:crrId/section1" element={<Section1 />} />
+        <Route path="/:projectId/crrs/:crrId" element={<Section1 />} />
       </Routes>
     </Router>
   );
