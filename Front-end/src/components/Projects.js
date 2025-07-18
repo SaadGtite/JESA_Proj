@@ -69,7 +69,6 @@ function ProjectTable() {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedProject(null);
-    setEditData({});
   };
 
   const handleDelete = async (e, id) => {

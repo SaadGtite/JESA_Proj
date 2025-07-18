@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import NewProjectForm from './Forms/ProjInfo';
 import Section1 from './Forms/Section1'; 
 import ForgotPasswordPage from './pages/ForgotPasswordPage'; 
+import EditProjectForm from './Forms/EditProjectForm';
 import ProjectTable from './components/Projects';
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
         <Route path="/new-project" element={<NewProjectForm />} />
         <Route path="/crr-Section1" element={<Section1 />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/edit/:id" element={<NewProjectForm />} />
+        <Route path="/projinfo/:id" element={<EditProjectForm />} />
         <Route path="/:projectId/crrs/:crrId" element={<Section1 />} />
       </Routes>
     </Router>

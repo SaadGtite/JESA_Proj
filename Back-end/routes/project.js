@@ -207,7 +207,7 @@ router.post('/:projectId/crrs', async (req, res) => {
   }
 });
 
-module.exports = router;
+
 router.put('/:id', async (req, res) => {
   try {
     const {
