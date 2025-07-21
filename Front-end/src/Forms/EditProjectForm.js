@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
-
+import './EditProjectForm.css'; // Assuming you have a CSS file for styling
 const EditProjectForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
