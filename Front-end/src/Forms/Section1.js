@@ -22,16 +22,23 @@ const Section1 = () => {
         const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
         if (!res.ok) throw new Error(`Échec de la requête : ${res.status}`);
         const data = await res.json();
+
         if (data.sections && data.sections.length > 0) {
           setSectionTitle(data.sections[0].title || 'Section 1: Project Fundamentals');
-          const initializedQuestions = data.sections[0].questions.map(q => ({
+
+          const randomShowstoppers = new Set();
+          while (randomShowstoppers.size < 5 && randomShowstoppers.size < data.sections[0].questions.length) {
+            randomShowstoppers.add(Math.floor(Math.random() * data.sections[0].questions.length));
+          }
+
+          const initializedQuestions = data.sections[0].questions.map((q, i) => ({
             ...q,
             comments: '',
             actions: [],
             referenceDocument: '',
             deliverable: '',
             score: undefined,
-            showstopper: q.showstopper || false
+            showstopper: randomShowstoppers.has(i)
           }));
           setQuestions(initializedQuestions);
         } else {
@@ -115,7 +122,15 @@ const Section1 = () => {
     const score = parseFloat(q.score);
     return sum + (!isNaN(score) ? score : 0);
   }, 0);
+
   const maxScore = questions.length * 5;
+
+  const getScoreColor = (score, max) => {
+    const percentage = score / max;
+    if (percentage <= 0.2) return '#4caf50'; // green
+    if (percentage <= 0.5) return '#ffc107'; // yellow
+    return '#e63946'; // red
+  };
 
   if (loading || projectLoading) return <div>Chargement...</div>;
   if (error) return <div>Erreur : {error}</div>;
@@ -126,55 +141,61 @@ const Section1 = () => {
       {project && (
         <div className="project-card">
           <h3 className="form-title">Project Information</h3>
-          <div className="project-info">
-            <div>
-              <strong className="form-label">Responsible Office:</strong> {project['responsible office'] || 'N/A'}
+          <div className="project-info-table">
+            <div className="info-row">
+              <div className="info-cell"><strong>Responsible Office:</strong><br />{project['responsible office'] || 'N/A'}</div>
+              <div className="info-cell"><strong>Project Name:</strong><br />{project['name project'] || 'N/A'}</div>
             </div>
-            <div>
-              <strong className="form-label">Project Name:</strong> {project['name project'] || 'N/A'}
+            <div className="info-row">
+              <div className="info-cell"><strong>Project Number:</strong><br />{project['number project'] || 'N/A'}</div>
+              <div className="info-cell"><strong>Review Date:</strong><br />{project['review date']?.slice(0, 10) || 'N/A'}</div>
             </div>
-            <div>
-              <strong className="form-label">Project Number:</strong> {project['number project'] || 'N/A'}
+            <div className="info-row">
+              <div className="info-cell"><strong>Manager:</strong><br />{project.manager || 'N/A'}</div>
+              <div className="info-cell"><strong>Constructor Manager:</strong><br />{project['manager constructor'] || 'N/A'}</div>
             </div>
-            <div>
-              <strong className="form-label">Review Date:</strong> {project['review date']?.slice(0, 10) || 'N/A'}
+            <div className="info-row full-width">
+              <div className="info-cell"><strong>Project Scope:</strong><br />{project['project scope'] || 'N/A'}</div>
             </div>
-            <div>
-              <strong className="form-label">Manager:</strong> {project.manager || 'N/A'}
-            </div>
-            <div>
-              <strong className="form-label">Constructor Manager:</strong> {project['manager constructor'] || 'N/A'}
-            </div>
-            <div>
-              <strong className="form-label">Project Scope:</strong> {project['project scope'] || 'N/A'}
-            </div>
-            <div>
-              <strong className="form-label">Review Team:</strong>
-              <ul className="list-group">
+            <div className="info-row full-width">
+              <div className="info-cell">
+                <strong>Review Team:</strong>
                 {project['review team members']?.length > 0 ? (
-                  project['review team members'].map((member, index) => (
-                    <li key={index} className="list-group-item">{member}</li>
-                  ))
-                ) : (
-                  <span>None</span>
-                )}
-              </ul>
+                  <ul className="styled-list">
+                    {project['review team members'].map((member, i) => (
+                      <li key={i}>{member}</li>
+                    ))}
+                  </ul>
+                ) : <p>None</p>}
+              </div>
             </div>
-            <div>
-              <strong className="form-label">Interview Team:</strong>
-              <ul className="list-group">
+            <div className="info-row full-width">
+              <div className="info-cell">
+                <strong>Interview Team:</strong>
                 {project['project members interviewed']?.length > 0 ? (
-                  project['project members interviewed'].map((member, index) => (
-                    <li key={index} className="list-group-item">{member}</li>
-                  ))
-                ) : (
-                  <span>None</span>
-                )}
-              </ul>
+                  <ul className="styled-list">
+                    {project['project members interviewed'].map((member, i) => (
+                      <li key={i}>{member}</li>
+                    ))}
+                  </ul>
+                ) : <p>None</p>}
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      <div className="score-bar-wrapper">
+        <div
+          className="score-bar"
+          style={{
+            width: `${(totalScore / maxScore) * 100}%`,
+            backgroundColor: getScoreColor(totalScore, maxScore)
+          }}
+        >
+          {`Total Score: ${totalScore.toFixed(1)} / ${maxScore}`}
+        </div>
+      </div>
 
       <h2>{sectionTitle}</h2>
 
@@ -183,7 +204,9 @@ const Section1 = () => {
           questions.map((q, index) => (
             <div
               key={q._id || index}
-              className={`question-card${q.score === 'N/A' || q.isNA ? ' inactive-card' : ''}`}
+              className={`question-card
+                ${q.score === 'N/A' || q.isNA ? 'inactive-card' : ''}
+                ${(parseFloat(q.score) > 0 && q.showstopper) ? 'danger-card' : ''}`}
             >
               <h4>{`Question ${index + 1}: ${q.text || 'Texte de la question non disponible'}`}</h4>
 
@@ -220,30 +243,27 @@ const Section1 = () => {
                 />
               </div>
 
-              <div className="form-group">
-                <strong>Score</strong>
-                <div>
-                  {[0, 2.5, 5, 'N/A'].map(value => (
-                    <label key={value} style={{ marginLeft: 8 }}>
-                      <input
-                        type="radio"
-                        name={`score-${q._id || index}`}
-                        checked={q.score === value}
-                        onChange={() => handleScoreChange(q._id || index, value)}
-                      />{' '}
-                      {value}
-                    </label>
-                  ))}
+              <div className="form-group score-showstopper-group">
+                <div className="score-group">
+                  <strong>Score</strong>
+                  <div className="score-options">
+                    {[0, 2.5, 5, 'N/A'].map(value => (
+                      <label key={value} className="score-label">
+                        <span>{value}</span>
+                        <input
+                          type="radio"
+                          name={`score-${q._id || index}`}
+                          checked={q.score === value}
+                          onChange={() => handleScoreChange(q._id || index, value)}
+                        />
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              <div className="form-group">
-                <label><strong>Showstopper</strong></label>
-                <input
-                  type="checkbox"
-                  checked={q.showstopper || false}
-                  disabled
-                />
+                <div className="showstopper-group">
+                  <label><strong>Showstopper</strong></label>
+                  <input type="checkbox" checked={q.showstopper || false} disabled />
+                </div>
               </div>
 
               <div className="form-group">
@@ -264,7 +284,6 @@ const Section1 = () => {
       </div>
 
       <div className="bottom-save-bar">
-        <p>Total Score: {totalScore} / {maxScore}</p>
         <button onClick={handleSave} disabled={isSaving} className="btn-primary">
           {isSaving ? 'Saving...' : 'Save'}
         </button>

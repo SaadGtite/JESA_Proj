@@ -12,6 +12,11 @@
   margin: 8px 0;
   font-size: 16px;
 }
+/* Optional: You can style .progress-bar-segments if you want */
+.progress-bar-segments div {
+  /* smooth transitions for color */
+  transition: background-color 0.3s ease;
+}
 
 /* Style the main container holding the table */
 .table-container {

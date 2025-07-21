@@ -1,5 +1,6 @@
+// Sidebar.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FaTachometerAlt, FaProjectDiagram, FaCog, FaSignOutAlt, FaPlus
 } from 'react-icons/fa';
@@ -9,21 +10,25 @@ import Projects from './Projects';
 import Settings from './Settings';
 
 const Sidebar = () => {
-  const [activeItem, setActiveItem] = useState('Dashboard');
+  // Initialize activeItem based on the current URL
+  const location = useLocation();
+  const initialActiveItem = location.pathname === '/home/projects' ? 'Projects' : 'Dashboard';
+  const [activeItem, setActiveItem] = useState(initialActiveItem);
   const navigate = useNavigate();
 
   const menuItems = [
-    { name: 'Dashboard', icon: <FaTachometerAlt /> },
-    { name: 'Projects', icon: <FaProjectDiagram /> },
-    { name: 'Settings', icon: <FaCog /> },
-    { name: 'Logout', icon: <FaSignOutAlt /> },
+    { name: 'Dashboard', icon: <FaTachometerAlt />, path: '/home' },
+    { name: 'Projects', icon: <FaProjectDiagram />, path: '/home/projects' },
+    { name: 'Settings', icon: <FaCog />, path: '/home/settings' },
+    { name: 'Logout', icon: <FaSignOutAlt />, path: '/' },
   ];
 
-  const handleItemClick = (itemName) => {
+  const handleItemClick = (itemName, path) => {
     if (itemName === 'Logout') {
       navigate('/');
     } else {
       setActiveItem(itemName);
+      navigate(path); // Navigate to the corresponding path
     }
   };
 
@@ -52,7 +57,7 @@ const Sidebar = () => {
             <li
               key={item.name}
               className={activeItem === item.name ? 'active' : ''}
-              onClick={() => handleItemClick(item.name)}
+              onClick={() => handleItemClick(item.name, item.path)}
             >
               {item.icon} <span>{item.name}</span>
             </li>
