@@ -48,6 +48,38 @@ const formatDate = (dateString) => {
   }).format(new Date(dateString));
 };
 
+// Progress bar component with 4 segments
+const ProgressBarSegments = ({ sectionsCompleted }) => {
+  return (
+    <div
+      className="progress-bar-segments"
+      style={{
+        display: 'flex',
+        gap: 4,
+        minWidth: 100,
+        justifyContent: 'center',
+        flexGrow: 1,
+        marginLeft: 16,
+        marginRight: 16,
+      }}
+    >
+      {sectionsCompleted.map((completed, idx) => (
+        <div
+          key={idx}
+          style={{
+            flex: 1,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: completed ? '#28a745' : '#ccc',
+            transition: 'background-color 0.3s ease',
+          }}
+          title={`Section ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
+        />
+      ))}
+    </div>
+  );
+};
+
 function ProjectTable() {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -105,57 +137,70 @@ function ProjectTable() {
             </tr>
           </thead>
           <tbody>
-            {projects.map(project => (
-              <tr
-                key={project._id}
-                onClick={() => handleRowClick(project)}
-                style={{ cursor: 'pointer' }}
-              >
-                <td>{project['name project']}</td>
-                <td className="text-muted">{project['project scope']}</td>
-                <td className="text-muted">{formatDate(project['review date'])}</td>
-                <td className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <Button
-                      as={Link}
-                      to={`/projinfo/${project._id}`}
-                      variant="link"
-                      className="action-btn"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <EditIcon />
-                    </Button>
-                    <Button
-                      variant="link"
-                      className="action-btn"
-                      onClick={(e) => handleDelete(e, project._id)}
-                    >
-                      <DeleteIcon />
-                    </Button>
-                    <Button
-                      variant="link"
-                      className="action-btn"
-                      onClick={(e) => handleExport(e, project._id)}
-                    >
-                      <ExportIcon />
-                    </Button>
-                  </div>
-                  {project.crrs && project.crrs.length > 0 ? (
-                    <Button
-                      variant="link"
-                      className="action-btn ms-auto"
-                      as={Link}
-                      to={`/${project._id}/crrs/${project.crrs[0]._id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Proceed <ProceedIcon />
-                    </Button>
-                  ) : (
-                    <span className="text-muted">No CRR available</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {projects.map(project => {
+              const sectionsCompleted = project.sectionsCompleted || [false, false, false, false];
+
+              return (
+                <tr
+                  key={project._id}
+                  onClick={() => handleRowClick(project)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>{project['name project']}</td>
+                  <td className="text-muted">{project['project scope']}</td>
+                  <td className="text-muted">{formatDate(project['review date'])}</td>
+                  <td style={{ display: 'flex', alignItems: 'center' }}>
+                    {/* Action buttons on left */}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button
+                        as={Link}
+                        to={`/projinfo/${project._id}`}
+                        variant="link"
+                        className="action-btn"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Edit Project"
+                      >
+                        <EditIcon />
+                      </Button>
+                      <Button
+                        variant="link"
+                        className="action-btn"
+                        onClick={(e) => handleDelete(e, project._id)}
+                        title="Delete Project"
+                      >
+                        <DeleteIcon />
+                      </Button>
+                      <Button
+                        variant="link"
+                        className="action-btn"
+                        onClick={(e) => handleExport(e, project._id)}
+                        title="Export Project"
+                      >
+                        <ExportIcon />
+                      </Button>
+                    </div>
+
+                    {/* Progress bar centered between actions and proceed */}
+                    <ProgressBarSegments sectionsCompleted={sectionsCompleted} />
+
+                    {/* Proceed button on right */}
+                    {project.crrs && project.crrs.length > 0 ? (
+                      <Button
+                        variant="link"
+                        className="action-btn ms-auto"
+                        as={Link}
+                        to={`/${project._id}/crrs/${project.crrs[0]._id}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Proceed <ProceedIcon />
+                      </Button>
+                    ) : (
+                      <span className="text-muted ms-auto">No CRR available</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </Table>
       </div>
@@ -175,7 +220,6 @@ function ProjectTable() {
               <p><strong>Manager Constructor:</strong> {selectedProject['manager constructor']}</p>
               <p><strong>Manager:</strong> {selectedProject['manager']}</p>
               <p><strong>Review Date:</strong> {formatDate(selectedProject['review date'])}</p>
-             
             </div>
           ) : (
             <p>No project selected</p>
