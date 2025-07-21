@@ -302,30 +302,56 @@ router.get('/:projectId/crrs/:crrId', async (req, res) => {
   }
 });
 
-// PUT /api/projects/:projectId/crrs/:crrId/section/:sectionNumber
 router.put('/:projectId/crrs/:crrId/section/:sectionNumber', async (req, res) => {
   try {
     const { projectId, crrId, sectionNumber } = req.params;
     const { questions } = req.body;
 
-    const project = await Project.findById(projectId);
-    if (!project) return res.status(404).json({ message: 'Project not found' });
-
-    const crr = project.crrs.id(crrId);
-    if (!crr) return res.status(404).json({ message: 'CRR not found' });
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ message: 'Questions must be an array' });
+    }
 
     const sectionIndex = parseInt(sectionNumber) - 1;
-    if (!crr.sections[sectionIndex]) return res.status(404).json({ message: 'Section not found' });
+    if (isNaN(sectionIndex) || sectionIndex < 0) {
+      return res.status(400).json({ message: 'Invalid section number' });
+    }
 
-    // Remplace les questions de la section
-    crr.sections[sectionIndex].questions = questions;
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const crr = project.crrs.id(crrId);
+    if (!crr) {
+      return res.status(404).json({ message: 'CRR not found' });
+    }
+
+    if (!crr.sections[sectionIndex]) {
+      return res.status(404).json({ message: `Section ${sectionNumber} not found` });
+    }
+
+    // Update existing questions selectively
+    for (const newQ of questions) {
+      const existingQ = crr.sections[sectionIndex].questions.find(q => q._id.toString() === newQ._id);
+      if (existingQ) {
+        existingQ.text = newQ.text || existingQ.text;
+        existingQ.actions = newQ.actions || existingQ.actions;
+        existingQ.referenceDocument = newQ.referenceDocument || existingQ.referenceDocument;
+        existingQ.deliverable = newQ.deliverable || existingQ.deliverable;
+        existingQ.score = newQ.score !== undefined ? newQ.score : existingQ.score;
+        existingQ.isNA = newQ.isNA !== undefined ? newQ.isNA : existingQ.isNA;
+        existingQ.showstopper = newQ.showstopper !== undefined ? newQ.showstopper : existingQ.showstopper;
+        existingQ.comments = newQ.comments || existingQ.comments;
+      } else {
+        console.warn(`Question with _id ${newQ._id} not found, skipping`);
+      }
+    }
 
     await project.save();
-
     res.json({ message: 'Section updated successfully' });
   } catch (error) {
     console.error('Error updating section:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error', details: error.message });
   }
 });
 
