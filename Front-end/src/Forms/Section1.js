@@ -140,6 +140,20 @@ const handleSave = async () => {
     setIsSaving(false);
   }
 };
+    if (res.ok) {
+      setSaveMessage('Saved successfully ✅');
+    } else {
+      const errorData = await res.json();
+      console.error('Error response:', errorData);
+      setSaveMessage(`Failed to save ❌: ${errorData.message || res.statusText || res.status}`);
+    }
+  } catch (err) {
+    console.error('Failed to save:', err);
+    setSaveMessage(`Error occurred ❌: ${err.message}`);
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   const totalScore = questions.reduce((sum, q) => {
     const score = parseFloat(q.score);
@@ -150,10 +164,15 @@ const handleSave = async () => {
 
   const getScoreColor = (score, max) => {
     const percentage = score / max;
-    if (percentage <= 0.2) return '#4caf50'; // green
-    if (percentage <= 0.5) return '#ffc107'; // yellow
-    return '#e63946'; // red
+    // Interpolate from green (0, 255, 0) to red (230, 57, 70)
+    const r = Math.round(percentage * 230);
+    const g = Math.round((1 - percentage) * 255);
+    const b = Math.round(percentage * 70);
+    return `rgb(${r}, ${g}, ${b})`;
   };
+
+  const questionsAnswered = questions.filter(q => q.score !== undefined && q.score !== 'N/A').length;
+  const showstopperCount = questions.filter(q => q.showstopper).length;
 
   if (loading || projectLoading) return <div>Chargement...</div>;
   if (error) return <div>Erreur : {error}</div>;
@@ -208,15 +227,20 @@ const handleSave = async () => {
         </div>
       )}
 
-      <div className="score-bar-wrapper">
-        <div
-          className="score-bar"
-          style={{
-            width: `${(totalScore / maxScore) * 100}%`,
-            backgroundColor: getScoreColor(totalScore, maxScore)
-          }}
-        >
-          {`Total Score: ${totalScore.toFixed(1)} / ${maxScore}`}
+      <div className="summary-section">
+        <div className="summary-item">
+          <strong>Questions Answered:</strong> {questionsAnswered} / {questions.length}
+        </div>
+        <div className="summary-item">
+          <strong>Showstoppers:</strong> {showstopperCount}
+        </div>
+        <div className="summary-item">
+          <button
+            className="score-button"
+            style={{ backgroundColor: getScoreColor(totalScore, maxScore) }}
+          >
+            Score: {totalScore.toFixed(1)}
+          </button>
         </div>
       </div>
 

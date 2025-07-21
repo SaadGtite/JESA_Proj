@@ -179,13 +179,13 @@ const EditProjectForm = () => {
           />
         </Form.Group>
 
-        <Button variant="primary" type="submit">
+        <Button variant="primary" type="submit" onClick={() => navigate('/home/projects')}>
           Save Changes
         </Button>
         <Button
           variant="secondary"
           className="ms-2"
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/home/projects')}
         >
           Cancel
         </Button>
