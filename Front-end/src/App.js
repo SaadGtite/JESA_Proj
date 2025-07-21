@@ -51,7 +51,7 @@ function App() {
         <Route path="/new-project" element={<NewProjectForm />} />
         <Route path="/crr-Section1" element={<Section1 />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/edit/:id" element={<NewProjectForm />} />
+        <Route path="/projinfo/:id" element={<EditProjectForm />} />
         <Route path="/:projectId/crrs/:crrId" element={<Section1 />} />
       </Routes>
     </Router>

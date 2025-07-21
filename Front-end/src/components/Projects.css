@@ -218,3 +218,10 @@
   margin-left: 0.5rem;
   font-weight: 500;
 }
+.dashboard-heading {
+  font-weight: bold;
+  color: #333;
+}
+.form-control {
+  border-radius: 0.25rem;
+}
