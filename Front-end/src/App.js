@@ -6,6 +6,7 @@ import NewProjectForm from './Forms/ProjInfo';
 import Section1 from './Forms/Section1';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import Sidebar from './components/Sidebar';
+import EditProjectForm from './Forms/EditProjectForm';
 import Topbar from './components/Topbar'; // Import Topbar
 
 // Wrapper component to combine Topbar and Sidebar
