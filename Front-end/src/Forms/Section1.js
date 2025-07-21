@@ -15,63 +15,63 @@ const Section1 = () => {
   const [sectionTitle, setSectionTitle] = useState('Section 1: Project Fundamentals');
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
-        if (!res.ok) throw new Error(`Échec de la requête : ${res.status}`);
-        const data = await res.json();
+  const fetchQuestions = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
+      if (!res.ok) throw new Error(`Échec de la requête : ${res.status}`);
+      const data = await res.json();
 
-        if (data.sections && data.sections.length > 0) {
-          setSectionTitle(data.sections[0].title || 'Section 1: Project Fundamentals');
+      if (data.sections && data.sections.length > 0) {
+        setSectionTitle(data.sections[0].title || 'Section 1: Project Fundamentals');
 
-          const randomShowstoppers = new Set();
-          while (randomShowstoppers.size < 5 && randomShowstoppers.size < data.sections[0].questions.length) {
-            randomShowstoppers.add(Math.floor(Math.random() * data.sections[0].questions.length));
-          }
-
-          const initializedQuestions = data.sections[0].questions.map((q, i) => ({
-            ...q,
-            comments: '',
-            actions: [],
-            referenceDocument: '',
-            deliverable: '',
-            score: undefined,
-            isNA: false, // Initialize isNA
-            showstopper: randomShowstoppers.has(i),
-          }));
-          setQuestions(initializedQuestions);
-        } else {
-          setQuestions([]);
+        const randomShowstoppers = new Set();
+        while (randomShowstoppers.size < 5 && randomShowstoppers.size < data.sections[0].questions.length) {
+          randomShowstoppers.add(Math.floor(Math.random() * data.sections[0].questions.length));
         }
-      } catch (err) {
-        console.error('Failed to fetch CRR:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+
+        const initializedQuestions = data.sections[0].questions.map((q, i) => ({
+          ...q, // Preserve all existing fields from the database
+          comments: q.comments || '', // Keep database value or default to empty string
+          actions: q.actions ? q.actions.split(',').map(a => a.trim()) : [], // Convert string to array or default to empty array
+          referenceDocument: q.referenceDocument || '',
+          deliverable: q.deliverable || '',
+          score: q.score, // Keep database score (null, 0, 2.5, or 5)
+          isNA: q.isNA || false, // Keep database isNA value
+          showstopper: randomShowstoppers.has(i) || q.showstopper || false, // Prioritize database showstopper if exists
+        }));
+        setQuestions(initializedQuestions);
+      } else {
+        setQuestions([]);
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch CRR:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
     const fetchProject = async () => {
-      setProjectLoading(true);
-      setProjectError(null);
-      try {
-        const res = await fetch(`http://localhost:5000/api/projects/${projectId}`);
-        if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
-        const data = await res.json();
-        setProject(data);
-      } catch (err) {
-        console.error('Failed to fetch project:', err);
-        setProjectError(err.message);
-      } finally {
-        setProjectLoading(false);
-      }
-    };
+    setProjectLoading(true);
+    setProjectError(null);
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${projectId}`);
+      if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
+      const data = await res.json();
+      setProject(data);
+    } catch (err) {
+      console.error('Failed to fetch project:', err);
+      setProjectError(err.message);
+    } finally {
+      setProjectLoading(false);
+    }
+  };
 
-    fetchQuestions();
-    fetchProject();
-  }, [projectId, crrId]);
+  fetchQuestions();
+  fetchProject();
+}, [projectId, crrId]);
 
   const handleCommentChange = (id, value) => {
     setQuestions(prev => prev.map(q => (q._id === id ? { ...q, comments: value } : q)));
