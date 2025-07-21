@@ -94,29 +94,52 @@ const Section1 = () => {
     setQuestions(prev => prev.map(q => (q._id === id ? { ...q, deliverable: value } : q)));
   };
 
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      setSaveMessage('');
-      const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/1`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questions })
-      });
-
-      if (res.ok) {
-        setSaveMessage('Saved successfully ✅');
-      } else {
-        const errorText = await res.text();
-        setSaveMessage(`Failed to save ❌: ${errorText || res.status}`);
-      }
-    } catch (err) {
-      console.error('Failed to save:', err);
-      setSaveMessage('Error occurred ❌');
-    } finally {
-      setIsSaving(false);
+  
+const handleSave = async () => {
+  try {
+    if (questions.length === 0) {
+      setSaveMessage('No questions to save ❌');
+      return;
     }
-  };
+
+    setIsSaving(true);
+    setSaveMessage('');
+
+    console.log('projectId:', projectId, 'crrId:', crrId);
+    console.log('Payload:', JSON.stringify({ questions }, null, 2));
+
+    const sanitizedQuestions = questions.map(q => ({
+      _id: q._id, // Include _id as sent by frontend
+      text: q.text || '', // Ensure text is present
+      actions: q.actions.join(',') || '', // Convert array to string
+      referenceDocument: q.referenceDocument || '',
+      deliverable: q.deliverable || '',
+      score: q.score === 'N/A' ? null : [0, 2.5, 5].includes(parseFloat(q.score)) ? parseFloat(q.score) : null, // Match enum
+      isNA: q.isNA || false,
+      showstopper: q.showstopper || false,
+      comments: q.comments || '',
+    }));
+
+    const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/1`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questions: sanitizedQuestions }),
+    });
+
+    if (res.ok) {
+      setSaveMessage('Saved successfully ✅');
+    } else {
+      const errorData = await res.json();
+      console.error('Error response:', errorData);
+      setSaveMessage(`Failed to save ❌: ${errorData.message || res.statusText || res.status}`);
+    }
+  } catch (err) {
+    console.error('Failed to save:', err);
+    setSaveMessage(`Error occurred ❌: ${err.message}`);
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   const totalScore = questions.reduce((sum, q) => {
     const score = parseFloat(q.score);
