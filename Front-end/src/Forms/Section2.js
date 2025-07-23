@@ -27,15 +27,32 @@ const Section2 = () => {
         if (data.sections && data.sections.length > 1) {
           setSectionTitle(data.sections[1].title || 'Section 2: Advanced Evaluation');
 
-          const randomShowstoppers = new Set();
-          while (
-            randomShowstoppers.size < 5 &&
-            randomShowstoppers.size < data.sections[1].questions.length
-          ) {
-            randomShowstoppers.add(Math.floor(Math.random() * data.sections[1].questions.length));
+          let questions = data.sections[1].questions;
+
+          // Only randomize showstoppers if none are set
+          const hasShowstopper = questions.some(q => q.showstopper);
+          if (!hasShowstopper && questions.length > 0) {
+            const randomShowstoppers = new Set();
+            while (
+              randomShowstoppers.size < 5 &&
+              randomShowstoppers.size < questions.length
+            ) {
+              randomShowstoppers.add(Math.floor(Math.random() * questions.length));
+            }
+            questions = questions.map((q, i) => ({
+              ...q,
+              showstopper: randomShowstoppers.has(i)
+            }));
+
+            // Save the randomized showstoppers to backend
+            await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/2`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ questions }),
+            });
           }
 
-          const initializedQuestions = data.sections[1].questions.map((q, i) => ({
+          const initializedQuestions = questions.map(q => ({
             ...q,
             comments: q.comments || '',
             actions: q.actions ? q.actions.split(',').map(a => a.trim()) : [],
@@ -43,7 +60,7 @@ const Section2 = () => {
             deliverable: q.deliverable || '',
             score: q.score,
             isNA: q.isNA || false,
-            showstopper: randomShowstoppers.has(i) || q.showstopper || false,
+            showstopper: q.showstopper || false,
           }));
           setQuestions(initializedQuestions);
         } else {
