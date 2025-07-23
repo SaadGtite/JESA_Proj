@@ -8,15 +8,10 @@ import './Topbar.css';
 const Topbar = () => {
   const navigate = useNavigate();
 
-  const handleLogoClick = () => {
-    navigate('/home'); // Navigate to home page
-  };
-
   return (
     <div className="topbar">
-      <div className="logo-container" onClick={handleLogoClick}>
+      <div className="logo-container" >
         <img src={logo} alt="Logo" className="topbar-logo" />
-        <span className="logo-text">Field Services</span>
       </div>
     </div>
   );
