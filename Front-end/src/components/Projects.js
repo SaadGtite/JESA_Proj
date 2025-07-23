@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Dropdown } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
+import projImg from '../assets/proj-img.png';
 // Icons
 const EditIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -263,7 +264,7 @@ function ProjectTable() {
                   onClick={() => handleRowClick(project)}
                 >
                   <img
-                    src={ '../assets/proj-img.png'} // Use default image if img is not available
+                    src={projImg}
                     alt={project['name project']}
                     className="project-card-image"
                   />
