@@ -1,8 +1,7 @@
 /* Apply a base font and background for the entire page */
 .project-dashboard {
   font-family: 'Inter', sans-serif;
-  background-color: #ffffff; /* light gray background */
-}
+  background: rgba(223, 225, 228, 0.2); /* Transparent light blue with glassy effect */}
 
 .dashboard-heading {
   font-weight: 700;
@@ -115,6 +114,31 @@
 /* Remove default modal footer display */
 .project-modal .modal-footer {
   display: none;
+}
+
+/* Glassmorphism styles for modal components */
+.glass-modal-header,
+.glass-modal-body,
+.glass-modal-footer {
+  background: rgba(61, 17, 237, 0.275) !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.glass-modal-title {
+  width: 100%;
+  text-align: center;
+  color: #222;
+}
+
+.glass-modal-details {
+  text-align: center;
+}
+
+.glass-modal-footer {
+  justify-content: center !important;
 }
 
 /* Horizontal detail layout */

@@ -172,7 +172,7 @@ function ProjectTable() {
   return (
     <div className="container-fluid py-4 project-dashboard">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 className="mb-0 dashboard-heading">Projects Dashboard</h2>
+        <h2 className="mb-0 dashboard-heading">Projects </h2>
         <Button variant="outline-primary" onClick={toggleViewMode}>
           {viewMode === 'table' ? 'Switch to Card View' : 'Switch to Table View'}
         </Button>
@@ -305,12 +305,12 @@ function ProjectTable() {
       )}
 
       <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Project Details</Modal.Title>
+        <Modal.Header closeButton className="glass-modal-header">
+          <Modal.Title className="glass-modal-title">Project Details</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body className="glass-modal-body">
           {selectedProject ? (
-            <div className="project-details">
+            <div className="project-details glass-modal-details">
               <p><strong>Project Name:</strong> {selectedProject['name project']}</p>
               <p><strong>Project Scope:</strong> {selectedProject['project scope']}</p>
               <p><strong>Responsible Office:</strong> {selectedProject['responsible office']}</p>
@@ -320,10 +320,10 @@ function ProjectTable() {
               <p><strong>Review Date:</strong> {formatDate(selectedProject['review date'])}</p>
             </div>
           ) : (
-            <p>No project selected</p>
+            <p className="glass-modal-details">No project selected</p>
           )}
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer className="glass-modal-footer">
           <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
         </Modal.Footer>
       </Modal>

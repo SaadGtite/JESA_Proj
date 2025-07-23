@@ -75,8 +75,7 @@ html, body {
   min-height: 0;
   padding: 20px;
   box-sizing: border-box;
-  background-color: #ffffff;
-  overflow-y: auto;
+  background: rgba(76, 117, 179, 0.2); /* Transparent light blue with glassy effect */  overflow-y: auto;
   overflow-x: hidden;
   transition: margin-left 0.3s;
   margin-left: 60px;
