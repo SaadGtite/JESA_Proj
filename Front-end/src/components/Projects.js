@@ -138,7 +138,7 @@ function ProjectTable() {
           </thead>
           <tbody>
             {projects.map(project => {
-              const sectionsCompleted = project.sectionsCompleted || [false, false, false, false];
+              const sectionsCompleted = project.sectionsCompleted || [true, true, false, false];
 
               return (
                 <tr
