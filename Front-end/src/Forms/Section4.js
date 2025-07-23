@@ -171,7 +171,7 @@ const Section4 = () => {
 
       if (res.ok) {
         setSaveMessage('Saved successfully ✅');
-        // Optionally navigate somewhere else
+        navigate(`/projects/${projectId}/crrs/${crrId}/analytics`);
       } else {
         const errorData = await res.json();
         console.error('Error response:', errorData);
