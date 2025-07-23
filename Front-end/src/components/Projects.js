@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal } from 'react-bootstrap';
+import { Table, Button, Modal, Dropdown } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
-
 // Icons
 const EditIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -25,7 +24,7 @@ const DeleteIcon = () => (
 const ExportIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 8 0 1-2-2v-4"></path>
     <polyline points="7 10 12 15 17 10"></polyline>
     <line x1="12" y1="15" x2="12" y2="3"></line>
   </svg>
@@ -36,6 +35,15 @@ const ProceedIcon = () => (
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M5 12h14"></path>
     <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);
+
+const MenuIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="1"></circle>
+    <circle cx="12" cy="5" r="1"></circle>
+    <circle cx="12" cy="19" r="1"></circle>
   </svg>
 );
 
@@ -80,10 +88,43 @@ const ProgressBarSegments = ({ sectionsCompleted }) => {
   );
 };
 
+// Circle progress bar for card view
+const CircleProgressBar = ({ sectionsCompleted }) => {
+  return (
+    <div className="circle-progress-bar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {sectionsCompleted.map((completed, idx) => (
+        <div key={idx} style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: '50%',
+              backgroundColor: completed ? '#28a745' : '#ccc',
+              transition: 'background-color 0.3s ease',
+            }}
+            title={`Section ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
+          />
+          {idx < sectionsCompleted.length - 1 && (
+            <div
+              style={{
+                width: 16,
+                height: 2,
+                backgroundColor: completed && sectionsCompleted[idx + 1] ? '#28a745' : '#ccc',
+                transition: 'background-color 0.3s ease',
+              }}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 function ProjectTable() {
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -123,89 +164,145 @@ function ProjectTable() {
     alert(`Exporting project ID: ${id}`);
   };
 
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'table' ? 'card' : 'table');
+  };
+
   return (
     <div className="container-fluid py-4 project-dashboard">
-      <h2 className="mb-4 dashboard-heading">Projects Dashboard</h2>
-      <div className="table-container shadow-sm">
-        <Table responsive hover className="project-table align-middle">
-          <thead>
-            <tr>
-              <th>Project Name</th>
-              <th>Description</th>
-              <th>Date</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {projects.map(project => {
-              const sectionsCompleted = project.sectionsCompleted || [true, true, false, false];
-
-              return (
-                <tr
-                  key={project._id}
-                  onClick={() => handleRowClick(project)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <td>{project['name project']}</td>
-                  <td className="text-muted">{project['project scope']}</td>
-                  <td className="text-muted">{formatDate(project['review date'])}</td>
-                  <td style={{ display: 'flex', alignItems: 'center' }}>
-                    {/* Action buttons on left */}
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <Button
-                        as={Link}
-                        to={`/projinfo/${project._id}`}
-                        variant="link"
-                        className="action-btn"
-                        onClick={(e) => e.stopPropagation()}
-                        title="Edit Project"
-                      >
-                        <EditIcon />
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="action-btn"
-                        onClick={(e) => handleDelete(e, project._id)}
-                        title="Delete Project"
-                      >
-                        <DeleteIcon />
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="action-btn"
-                        onClick={(e) => handleExport(e, project._id)}
-                        title="Export Project"
-                      >
-                        <ExportIcon />
-                      </Button>
-                    </div>
-
-                    {/* Progress bar centered between actions and proceed */}
-                    <ProgressBarSegments sectionsCompleted={sectionsCompleted} />
-
-                    {/* Proceed button on right */}
-                    {project.crrs && project.crrs.length > 0 ? (
-                      <Button
-                        variant="link"
-                        className="action-btn ms-auto"
-                        as={Link}
-                        to={`/${project._id}/crrs/${project.crrs[0]._id}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Proceed <ProceedIcon />
-                      </Button>
-                    ) : (
-                      <span className="text-muted ms-auto">No CRR available</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h2 className="mb-0 dashboard-heading">Projects Dashboard</h2>
+        <Button variant="outline-primary" onClick={toggleViewMode}>
+          {viewMode === 'table' ? 'Switch to Card View' : 'Switch to Table View'}
+        </Button>
       </div>
 
-      {/* Details Modal */}
+      {viewMode === 'table' ? (
+        <div className="table-container shadow-sm">
+          <Table responsive hover className="project-table align-middle">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map(project => {
+                const sectionsCompleted = project.sectionsCompleted || [true, true, false, false];
+
+                return (
+                  <tr
+                    key={project._id}
+                    onClick={() => handleRowClick(project)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>{project['name project']}</td>
+                    <td className="text-muted">{project['project scope']}</td>
+                    <td className="text-muted">{formatDate(project['review date'])}</td>
+                    <td style={{ display: 'flex', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Button
+                          as={Link}
+                          to={`/projinfo/${project._id}`}
+                          variant="link"
+                          className="action-btn"
+                          onClick={(e) => e.stopPropagation()}
+                          title="Edit Project"
+                        >
+                          <EditIcon />
+                        </Button>
+                        <Button
+                          variant="link"
+                          className="action-btn"
+                          onClick={(e) => handleDelete(e, project._id)}
+                          title="Delete Project"
+                        >
+                          <DeleteIcon />
+                        </Button>
+                        <Button
+                          variant="link"
+                          className="action-btn"
+                          onClick={(e) => handleExport(e, project._id)}
+                          title="Export Project"
+                        >
+                          <ExportIcon />
+                        </Button>
+                      </div>
+                      <ProgressBarSegments sectionsCompleted={sectionsCompleted} />
+                      {project.crrs && project.crrs.length > 0 ? (
+                        <Button
+                          variant="link"
+                          className="action-btn ms-auto"
+                          as={Link}
+                          to={`/${project._id}/crrs/${project.crrs[0]._id}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Proceed <ProceedIcon />
+                        </Button>
+                      ) : (
+                        <span className="text-muted ms-auto">No CRR available</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </div>
+      ) : (
+        <div className="card-container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            {projects.map(project => {
+              const sectionsCompleted = project.sectionsCompleted || [true, true, false, false];
+              return (
+                <div
+                  key={project._id}
+                  className="project-card"
+                  onClick={() => handleRowClick(project)}
+                >
+                  <img
+                    src={ '../assets/proj-img.png'} // Use default image if img is not available
+                    alt={project['name project']}
+                    className="project-card-image"
+                  />
+                  <div className="project-card-content">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h5 className="project-card-title">{project['name project']}</h5>
+                      <Dropdown onClick={(e) => e.stopPropagation()}>
+                        <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
+                          <MenuIcon />
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu align="end">
+                          <Dropdown.Item as={Link} to={`/projinfo/${project._id}`}>
+                            <EditIcon style={{ marginRight: '8px' }} /> Edit
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={(e) => handleDelete(e, project._id)}>
+                            <DeleteIcon style={{ marginRight: '8px' }} /> Delete
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={(e) => handleExport(e, project._id)}>
+                            <ExportIcon style={{ marginRight: '8px' }} /> Export
+                          </Dropdown.Item>
+                          {project.crrs && project.crrs.length > 0 && (
+                            <Dropdown.Item as={Link} to={`/${project._id}/crrs/${project.crrs[0]._id}`}>
+                              <ProceedIcon style={{ marginRight: '8px' }} /> Proceed
+                            </Dropdown.Item>
+                          )}
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </div>
+                    <p className="project-card-description">{project['project scope']}</p>
+                    <p className="project-card-date">{formatDate(project['review date'])}</p>
+                    <CircleProgressBar sectionsCompleted={sectionsCompleted} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>Project Details</Modal.Title>
