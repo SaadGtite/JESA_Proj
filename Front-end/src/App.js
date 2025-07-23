@@ -8,6 +8,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import Sidebar from './components/Sidebar';
 import EditProjectForm from './Forms/EditProjectForm';
 import Topbar from './components/Topbar'; // Import Topbar
+import Section2 from './Forms/Section2';
 
 // Wrapper component to combine Topbar and Sidebar
 const MainLayout = ({ children }) => {
@@ -54,6 +55,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/projinfo/:id" element={<EditProjectForm />} />
         <Route path="/:projectId/crrs/:crrId" element={<Section1 />} />
+        <Route path="/projects/:projectId/crrs/:crrId" element={<Section2 />} />
       </Routes>
     </Router>
   );

@@ -267,35 +267,14 @@ router.delete('/:id', async (req, res) => {
 router.get('/:projectId/crrs/:crrId', async (req, res) => {
   try {
     const { projectId, crrId } = req.params;
-
-    // Validate projectId
-    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
-      return res.status(400).json({ message: 'Invalid projectId' });
-    }
-
-    // Find the project
     const project = await Project.findById(projectId);
-    if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
+    if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    // Find the specific CRR by its _id
     const crr = project.crrs.id(crrId);
-    if (!crr) {
-      return res.status(404).json({ message: 'CRR not found' });
-    }
+    if (!crr) return res.status(404).json({ message: 'CRR not found' });
 
-    // Extract the first section and its questions
-    const section = crr.sections[0] || { questions: [] };
-    const questions = section.questions || [];
-
-    // Return only the relevant data (first section with all questions)
-    res.json({
-      sections: [{
-        title: section.title || 'Section 1: Project Fundamentals',
-        questions: questions.slice(0, 20) // Limit to 20 if more exist
-      }]
-    });
+    // Return ALL sections
+    res.json({ sections: crr.sections });
   } catch (error) {
     console.error('Error fetching CRR:', error);
     res.status(500).json({ message: 'Internal server error' });

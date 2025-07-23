@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './Section1.css';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import Section2 from './Section2';
 
 const Section1 = () => {
   const { projectId, crrId } = useParams();
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [project, setProject] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -149,6 +151,7 @@ const Section1 = () => {
 
       if (res.ok) {
         setSaveMessage('Saved successfully ✅');
+        navigate(`/projects/${projectId}/crrs/${crrId}`);
       } else {
         const errorData = await res.json();
         console.error('Error response:', errorData);
@@ -323,7 +326,7 @@ const Section1 = () => {
 
       <div className="bottom-save-bar">
         <button onClick={handleSave} disabled={isSaving} className="btn-primary">
-          {isSaving ? 'Saving...' : 'Save'}
+          {isSaving ? 'Saving...' : 'Next ➡️'}
         </button>
         {saveMessage && <span>{saveMessage}</span>}
       </div>
