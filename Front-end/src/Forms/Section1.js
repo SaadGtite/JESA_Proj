@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Section1.css';
 import { useParams, useNavigate } from 'react-router-dom';
-import Section2 from './Section2';
 
 const Section1 = () => {
   const { projectId, crrId } = useParams();

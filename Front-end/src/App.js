@@ -9,7 +9,8 @@ import Sidebar from './components/Sidebar';
 import EditProjectForm from './Forms/EditProjectForm';
 import Topbar from './components/Topbar'; // Import Topbar
 import Section2 from './Forms/Section2';
-
+import Section3 from './Forms/Section3';
+import Section4 from './Forms/Section4'; // Import Section4
 // Wrapper component to combine Topbar and Sidebar
 const MainLayout = ({ children }) => {
   return (
@@ -56,6 +57,8 @@ function App() {
         <Route path="/projinfo/:id" element={<EditProjectForm />} />
         <Route path="/:projectId/crrs/:crrId" element={<Section1 />} />
         <Route path="/projects/:projectId/crrs/:crrId" element={<Section2 />} />
+        <Route path="/projects/:projectId/crrs/:crrId/section3" element={<Section3 />} />
+        <Route path="/projects/:projectId/crrs/:crrId/section4" element={<Section4 />} /> {/* Added route for Section4 */}
       </Routes>
     </Router>
   );
