@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './Section1.css';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const Section1 = () => {
   const { projectId, crrId } = useParams();
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [project, setProject] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -15,63 +16,83 @@ const Section1 = () => {
   const [sectionTitle, setSectionTitle] = useState('Section 1: Project Fundamentals');
 
   useEffect(() => {
-  const fetchQuestions = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
-      if (!res.ok) throw new Error(`Échec de la requête : ${res.status}`);
-      const data = await res.json();
+    const fetchQuestions = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
+        if (!res.ok) throw new Error(`Échec de la requête : ${res.status}`);
+        const data = await res.json();
 
-      if (data.sections && data.sections.length > 0) {
-        setSectionTitle(data.sections[0].title || 'Section 1: Project Fundamentals');
+        if (data.sections && data.sections.length > 0) {
+          setSectionTitle(data.sections[0].title || 'Section 1: Project Fundamentals');
 
-        const randomShowstoppers = new Set();
-        while (randomShowstoppers.size < 5 && randomShowstoppers.size < data.sections[0].questions.length) {
-          randomShowstoppers.add(Math.floor(Math.random() * data.sections[0].questions.length));
+          let questions = data.sections[0].questions;
+
+          // Only randomize showstoppers if none are set
+          const hasShowstopper = questions.some(q => q.showstopper);
+          if (!hasShowstopper && questions.length > 0) {
+            const randomShowstoppers = new Set();
+            while (
+              randomShowstoppers.size < 5 &&
+              randomShowstoppers.size < questions.length
+            ) {
+              randomShowstoppers.add(Math.floor(Math.random() * questions.length));
+            }
+            questions = questions.map((q, i) => ({
+              ...q,
+              showstopper: randomShowstoppers.has(i)
+            }));
+
+            // Save the randomized showstoppers to backend
+            await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/1`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ questions }),
+            });
+          }
+
+          const initializedQuestions = questions.map(q => ({
+            ...q,
+            comments: q.comments || '',
+            actions: q.actions ? q.actions.split(',').map(a => a.trim()) : [],
+            referenceDocument: q.referenceDocument || '',
+            deliverable: q.deliverable || '',
+            score: q.score,
+            isNA: q.isNA || false,
+            showstopper: q.showstopper || false,
+          }));
+          setQuestions(initializedQuestions);
+        } else {
+          setQuestions([]);
         }
-
-        const initializedQuestions = data.sections[0].questions.map((q, i) => ({
-          ...q, // Preserve all existing fields from the database
-          comments: q.comments || '', // Keep database value or default to empty string
-          actions: q.actions ? q.actions.split(',').map(a => a.trim()) : [], // Convert string to array or default to empty array
-          referenceDocument: q.referenceDocument || '',
-          deliverable: q.deliverable || '',
-          score: q.score, // Keep database score (null, 0, 2.5, or 5)
-          isNA: q.isNA || false, // Keep database isNA value
-          showstopper: randomShowstoppers.has(i) || q.showstopper || false, // Prioritize database showstopper if exists
-        }));
-        setQuestions(initializedQuestions);
-      } else {
-        setQuestions([]);
+      } catch (err) {
+        console.error('Failed to fetch CRR:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to fetch CRR:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
     const fetchProject = async () => {
-    setProjectLoading(true);
-    setProjectError(null);
-    try {
-      const res = await fetch(`http://localhost:5000/api/projects/${projectId}`);
-      if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
-      const data = await res.json();
-      setProject(data);
-    } catch (err) {
-      console.error('Failed to fetch project:', err);
-      setProjectError(err.message);
-    } finally {
-      setProjectLoading(false);
-    }
-  };
+      setProjectLoading(true);
+      setProjectError(null);
+      try {
+        const res = await fetch(`http://localhost:5000/api/projects/${projectId}`);
+        if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
+        const data = await res.json();
+        setProject(data);
+      } catch (err) {
+        console.error('Failed to fetch project:', err);
+        setProjectError(err.message);
+      } finally {
+        setProjectLoading(false);
+      }
+    };
 
-  fetchQuestions();
-  fetchProject();
-}, [projectId, crrId]);
+    fetchQuestions();
+    fetchProject();
+  }, [projectId, crrId]);
 
   const handleCommentChange = (id, value) => {
     setQuestions(prev => prev.map(q => (q._id === id ? { ...q, comments: value } : q)));
@@ -83,8 +104,8 @@ const Section1 = () => {
         q._id === id
           ? {
               ...q,
-              score: value === 'N/A' ? null : Number(value), // Convert to number or null for N/A
-              isNA: value === 'N/A', // Set isNA based on value
+              score: value === 'N/A' ? null : Number(value),
+              isNA: value === 'N/A',
             }
           : q
       )
@@ -97,8 +118,8 @@ const Section1 = () => {
         q._id === id
           ? {
               ...q,
-              score: checked ? null : q.score ?? 0, // Set score to null if checked, else revert to previous or 0
-              isNA: checked, // Set isNA based on checkbox
+              score: checked ? null : q.score ?? 0,
+              isNA: checked,
             }
           : q
       )
@@ -149,6 +170,7 @@ const Section1 = () => {
 
       if (res.ok) {
         setSaveMessage('Saved successfully ✅');
+        navigate(`/projects/${projectId}/crrs/${crrId}`);
       } else {
         const errorData = await res.json();
         console.error('Error response:', errorData);
@@ -177,7 +199,7 @@ const Section1 = () => {
     return `rgb(${r}, ${g}, ${b})`;
   };
 
-  const questionsAnswered = questions.filter(q => q.score !== undefined && !q.isNA).length;
+  const questionsAnswered = questions.filter(q => q.isNA || [0, 2.5, 5].includes(parseFloat(q.score))).length;
   const showstopperCount = questions.filter(q => q.showstopper).length;
 
   if (loading || projectLoading) return <div>Chargement...</div>;
@@ -323,7 +345,7 @@ const Section1 = () => {
 
       <div className="bottom-save-bar">
         <button onClick={handleSave} disabled={isSaving} className="btn-primary">
-          {isSaving ? 'Saving...' : 'Save'}
+          {isSaving ? 'Saving...' : 'Next ➡️'}
         </button>
         {saveMessage && <span>{saveMessage}</span>}
       </div>
