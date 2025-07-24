@@ -82,7 +82,7 @@ const ProgressBarSegments = ({ sectionsCompleted }) => {
             backgroundColor: completed ? '#28a745' : '#ccc',
             transition: 'background-color 0.3s ease',
           }}
-          title={`Section ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
+          title={`CRR ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
         />
       ))}
     </div>
