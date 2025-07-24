@@ -17,15 +17,16 @@
 }
 
 .topbar-logo {
-  height: 40px;
+  height: 60px;
   cursor: pointer;
+  margin-left: -50px;
 }
 
 .logo-container {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: start;
   height: 60px;
 }
 
