@@ -48,13 +48,14 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!mapRef.current) {
-      mapRef.current = L.map('map', {
-      center: [30.994053, -15.867001],  // Move slightly east
-      zoom: 5.5,                // Zoom in a bit for clarity
-      maxBoundsViscosity: 1.0,
-      worldCopyJump: false,
+       mapRef.current = L.map('map', {
+      center: [30.994053, -15.867001], // Morocco center
+      zoom: 6,
       minZoom: 5,
+      maxZoom: 10,
       zoomControl: true,
+      
+     
     });
 
       // No tile layer → nothing else appears except Morocco
