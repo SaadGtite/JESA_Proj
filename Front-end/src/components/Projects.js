@@ -279,54 +279,59 @@ function ProjectTable() {
               : false
           );
 
-              return (
-                <div
-                  key={project._id}
-                  className="project-card"
-                  onClick={() => handleRowClick(project)}
-                >
-                  <img
-                    src={projImg}
-                    alt={project['name project']}
-                    className="project-card-image"
-                  />
-                  <div className="project-card-content">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h5 className="project-card-title">{project['name project']}</h5>
-                      <Dropdown onClick={(e) => e.stopPropagation()}>
-                        <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
-                          <MenuIcon />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="end">
-                          <Dropdown.Item as={Link} to={`/projinfo/${project._id}`}>
-                            <EditIcon style={{ marginRight: '8px' }} /> Edit
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={(e) => handleDelete(e, project._id)}>
-                            <DeleteIcon style={{ marginRight: '8px' }} /> Delete
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={(e) => handleExport(e, project._id)}>
-                            <ExportIcon style={{ marginRight: '8px' }} /> Export
-                          </Dropdown.Item>
-                          {project.crrs && project.crrs.length > 0 && (
-                            <Dropdown.Item as={Link} to={`/${project._id}/crrs/${project.crrs[0]._id}`}>
-                              <ProceedIcon style={{ marginRight: '8px' }} /> Proceed
-                            </Dropdown.Item>
-                          )}
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </div>
-                    <p className="project-card-description">{project['project scope']}</p>
-                    <p className="project-card-date">{formatDate(project['review date'])}</p>
-                    <CircleProgressBar sectionsCompleted={crrCompletions} />
-                  </div>
-                </div>
-              );
-            })}
+        return (
+          <div
+            key={project._id}
+            className="project-card"
+            onClick={() => handleRowClick(project)}
+          >
+            <img
+              src={project.picture ? `http://localhost:5000${project.picture}` : projImg}
+              alt={project['name project']}
+              className="project-card-image"
+              onError={(e) => {
+                console.log('Image load failed for:', project.picture); // Debug log
+                e.target.src = projImg; // Fallback to default image
+              }}
+            />
+            <div className="project-card-content">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h5 className="project-card-title">{project['name project']}</h5>
+                <Dropdown onClick={(e) => e.stopPropagation()}>
+                  <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
+                    <MenuIcon />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu align="end">
+                    <Dropdown.Item as={Link} to={`/projinfo/${project._id}`}>
+                      <EditIcon style={{ marginRight: '8px' }} /> Edit
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={(e) => handleDelete(e, project._id)}>
+                      <DeleteIcon style={{ marginRight: '8px' }} /> Delete
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={(e) => handleExport(e, project._id)}>
+                      <ExportIcon style={{ marginRight: '8px' }} /> Export
+                    </Dropdown.Item>
+                    {project.crrs && project.crrs.length > 0 && (
+                      <Dropdown.Item as={Link} to={`/${project._id}/crrs/${project.crrs[0]._id}`}>
+                        <ProceedIcon style={{ marginRight: '8px' }} /> Proceed
+                      </Dropdown.Item>
+                    )}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
+              <p className="project-card-description">{project['project scope']}</p>
+              <p className="project-card-date">
+                {formatDate(project['review date'])} | Location: {project.location || 'N/A'} | Sector: {project.sectorManager || 'N/A'}
+              </p>
+              <CircleProgressBar sectionsCompleted={crrCompletions} />
+            </div>
           </div>
-        </div>
-      )}
-
-      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans project-modal">
+        );
+      })}
+    </div>
+  </div>
+)}
+      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans">
         <Modal.Header 
           className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg"
         >
@@ -344,7 +349,7 @@ function ProjectTable() {
           className="bg-white/10 backdrop-blur-lg border-x border-white/20 p-6"
         >
           {selectedProject ? (
-            <div className="horizontal-sections">
+            <div className="space-y-6">
               {/* Basic Project Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -388,99 +393,71 @@ function ProjectTable() {
                       />
                     </p>
                   )}
-              <div className="section-card">
-                <h3 className="section-heading">Basic Project Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="project-detail-text">
-                      <strong className="font-semibold">Project Name:</strong> {selectedProject['name project']}
-                    </p>
-                    <p className="project-detail-text">
-                      <strong className="font-semibold">Project Number:</strong> {selectedProject['number project']}
-                    </p>
-                    <p className="project-detail-text">
-                      <strong className="font-semibold">Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}
-                    </p>
-                    <p className="project-detail-text">
-                      <strong className="font-semibold">Project Scope:</strong> {selectedProject['project scope']}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="project-detail-text">
-                      <strong className="font-semibold">Manager:</strong> {selectedProject['manager']}
-                    </p>
-                    <p className="project-detail-text">
-                      <strong className="font-semibold">Manager Constructor:</strong> {selectedProject['manager constructor']}
-                    </p>
-                    <p className="project-detail-text">
-                      <strong className="font-semibold">Review Date:</strong> {formatDate(selectedProject['review date'])}
-                    </p>
-                  </div>
                 </div>
               </div>
 
               {/* Team Members */}
-              <div className="section-card">
-                <h3 className="section-heading">Review Team Members</h3>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Review Team Members</h3>
                 {selectedProject['review team members']?.length > 0 ? (
-                  <ul className="member-list">
+                  <ul className="list-disc pl-5 text-gray-700">
                     {selectedProject['review team members'].map((member, index) => (
-                      <li key={index} className="member-item">{member}</li>
+                      <li key={index}>{member}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="project-detail-text italic">No team members listed</p>
+                  <p className="text-gray-600 italic">No team members listed</p>
                 )}
               </div>
 
               {/* Project Members Interviewed */}
-              <div className="section-card">
-                <h3 className="section-heading">Project Members Interviewed</h3>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Project Members Interviewed</h3>
                 {selectedProject['project members interviewed']?.length > 0 ? (
-                  <ul className="member-list">
+                  <ul className="list-disc pl-5 text-gray-700">
                     {selectedProject['project members interviewed'].map((member, index) => (
-                      <li key={index} className="member-item">{member}</li>
+                      <li key={index}>{member}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="project-detail-text italic">No members interviewed</p>
+                  <p className="text-gray-600 italic">No members interviewed</p>
                 )}
               </div>
 
               {/* CRR Details */}
-              <div className="section-card">
-                <h3 className="section-heading">CRR Assessments</h3>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">CRR Assessments</h3>
                 {selectedProject.crrs?.length > 0 ? (
                   <div className="space-y-4">
                     {selectedProject.crrs.map((crr, index) => (
-                      <div key={index} className="crr-assessment">
-                        <p className="project-detail-text">
+                      <div key={index} className="border-l-4 border-blue-500 pl-4">
+                        <p className="text-gray-800">
                           <strong className="font-semibold">CRR Title:</strong> {crr.title}
                         </p>
-                        <p className="project-detail-text">
+                        <p className="text-gray-800">
                           <strong className="font-semibold">Created At:</strong> {formatDate(crr.createdAt)}
                         </p>
-                        <p className="project-detail-text">
+                        <p className="text-gray-800">
                           <strong className="font-semibold">Sections:</strong> {crr.sections.length}
                         </p>
-                        <p className="project-detail-text">
+                        <p className="text-gray-800">
                           <strong className="font-semibold">All Sections Completed:</strong>{' '}
                           {crr.sections.every(section => section.allQuestionsCompleted) ? (
-                            <span className="status-badge text-green-600">Yes</span>
+                            <span className="text-green-600">Yes</span>
                           ) : (
-                            <span className="status-badge text-red-600">No</span>
+                            <span className="text-red-600">No</span>
                           )}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="project-detail-text italic">No CRR assessments available</p>
+                  <p className="text-gray-600 italic">No CRR assessments available</p>
                 )}
               </div>
             </div>
           ) : (
-            <p className="project-detail-text italic text-center">No project selected</p>
+            <p className="text-gray-600 italic text-center">No project selected</p>
           )}
         </Modal.Body>
         <Modal.Footer 
