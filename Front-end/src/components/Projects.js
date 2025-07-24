@@ -3,6 +3,7 @@ import { Table, Button, Modal, Dropdown } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
 import projImg from '../assets/proj-img.png';
+
 // Icons
 const EditIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -25,7 +26,7 @@ const DeleteIcon = () => (
 const ExportIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 8 0 1-2-2v-4"></path>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
     <polyline points="7 10 12 15 17 10"></polyline>
     <line x1="12" y1="15" x2="12" y2="3"></line>
   </svg>
@@ -172,7 +173,7 @@ function ProjectTable() {
   return (
     <div className="container-fluid py-4 project-dashboard">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 className="mb-0 dashboard-heading">Projects </h2>
+        <h2 className="mb-0 dashboard-heading">Projects</h2>
         <Button variant="outline-primary" onClick={toggleViewMode}>
           {viewMode === 'table' ? 'Switch to Card View' : 'Switch to Table View'}
         </Button>
@@ -192,18 +193,14 @@ function ProjectTable() {
             <tbody>
               {projects.map(project => {
                 const crrCompletions = Array(4)
-  .fill(false)
-  .map((_, idx) =>
-    project.crrs && idx < project.crrs.length
-      ? project.crrs[idx].sections
-          .map(section => {
-            console.log('Section virtual value:', section.allQuestionsCompleted); // DEBUG HERE
-            return section.allQuestionsCompleted;
-          })
-          .every(completed => completed)
-      : false
-  );
-
+                  .fill(false)
+                  .map((_, idx) =>
+                    project.crrs && idx < project.crrs.length
+                      ? project.crrs[idx].sections
+                          .map(section => section.allQuestionsCompleted)
+                          .every(completed => completed)
+                      : false
+                  );
 
                 return (
                   <tr
@@ -269,17 +266,14 @@ function ProjectTable() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {projects.map(project => {
               const crrCompletions = Array(4)
-  .fill(false)
-  .map((_, idx) =>
-    project.crrs && idx < project.crrs.length
-      ? project.crrs[idx].sections
-          .map(section => {
-            console.log('Section virtual value:', section.allQuestionsCompleted); // DEBUG HERE
-            return section.allQuestionsCompleted;
-          })
-          .every(completed => completed)
-      : false
-  );
+                .fill(false)
+                .map((_, idx) =>
+                  project.crrs && idx < project.crrs.length
+                    ? project.crrs[idx].sections
+                        .map(section => section.allQuestionsCompleted)
+                        .every(completed => completed)
+                    : false
+                );
 
               return (
                 <div
@@ -328,27 +322,128 @@ function ProjectTable() {
         </div>
       )}
 
-      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
-        <Modal.Header closeButton className="glass-modal-header">
-          <Modal.Title className="glass-modal-title">Project Details</Modal.Title>
+      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans">
+        <Modal.Header 
+          className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg"
+        >
+          <Modal.Title className="text-2xl font-bold text-gray-800">
+            Project Details
+          </Modal.Title>
+          <button 
+            type="button" 
+            className="btn-close bg-white/20 hover:bg-white/30 rounded-full" 
+            onClick={handleCloseModal}
+            aria-label="Close"
+          ></button>
         </Modal.Header>
-        <Modal.Body className="glass-modal-body">
+        <Modal.Body 
+          className="bg-white/10 backdrop-blur-lg border-x border-white/20 p-6"
+        >
           {selectedProject ? (
-            <div className="project-details glass-modal-details">
-              <p><strong>Project Name:</strong> {selectedProject['name project']}</p>
-              <p><strong>Project Scope:</strong> {selectedProject['project scope']}</p>
-              <p><strong>Responsible Office:</strong> {selectedProject['responsible office']}</p>
-              <p><strong>Number:</strong> {selectedProject['number project']}</p>
-              <p><strong>Manager Constructor:</strong> {selectedProject['manager constructor']}</p>
-              <p><strong>Manager:</strong> {selectedProject['manager']}</p>
-              <p><strong>Review Date:</strong> {formatDate(selectedProject['review date'])}</p>
+            <div className="space-y-6">
+              {/* Basic Project Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Project Name:</strong> {selectedProject['name project']}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Project Number:</strong> {selectedProject['number project']}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Project Scope:</strong> {selectedProject['project scope']}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Manager:</strong> {selectedProject['manager']}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Manager Constructor:</strong> {selectedProject['manager constructor']}
+                  </p>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Review Date:</strong> {formatDate(selectedProject['review date'])}
+                  </p>
+                </div>
+              </div>
+
+              {/* Team Members */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Review Team Members</h3>
+                {selectedProject['review team members']?.length > 0 ? (
+                  <ul className="list-disc pl-5 text-gray-700">
+                    {selectedProject['review team members'].map((member, index) => (
+                      <li key={index}>{member}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-600 italic">No team members listed</p>
+                )}
+              </div>
+
+              {/* Project Members Interviewed */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Project Members Interviewed</h3>
+                {selectedProject['project members interviewed']?.length > 0 ? (
+                  <ul className="list-disc pl-5 text-gray-700">
+                    {selectedProject['project members interviewed'].map((member, index) => (
+                      <li key={index}>{member}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-600 italic">No members interviewed</p>
+                )}
+              </div>
+
+              {/* CRR Details */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">CRR Assessments</h3>
+                {selectedProject.crrs?.length > 0 ? (
+                  <div className="space-y-4">
+                    {selectedProject.crrs.map((crr, index) => (
+                      <div key={index} className="border-l-4 border-blue-500 pl-4">
+                        <p className="text-gray-800">
+                          <strong className="font-semibold">CRR Title:</strong> {crr.title}
+                        </p>
+                        <p className="text-gray-800">
+                          <strong className="font-semibold">Created At:</strong> {formatDate(crr.createdAt)}
+                        </p>
+                        <p className="text-gray-800">
+                          <strong className="font-semibold">Sections:</strong> {crr.sections.length}
+                        </p>
+                        <p className="text-gray-800">
+                          <strong className="font-semibold">All Sections Completed:</strong>{' '}
+                          {crr.sections.every(section => section.allQuestionsCompleted) ? (
+                            <span className="text-green-600">Yes</span>
+                          ) : (
+                            <span className="text-red-600">No</span>
+                          )}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600 italic">No CRR assessments available</p>
+                )}
+              </div>
             </div>
           ) : (
-            <p className="glass-modal-details">No project selected</p>
+            <p className="text-gray-600 italic text-center">No project selected</p>
           )}
         </Modal.Body>
-        <Modal.Footer className="glass-modal-footer">
-          <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
+        <Modal.Footer 
+          className="bg-white/10 backdrop-blur-lg border border-white/20"
+        >
+          <Button 
+            variant="secondary" 
+            onClick={handleCloseModal}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors"
+          >
+            Close
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>
