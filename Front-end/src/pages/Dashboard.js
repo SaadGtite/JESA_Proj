@@ -4,8 +4,9 @@ import { Container, Row, Col, Form } from 'react-bootstrap';
 import { Chart, registerables } from 'chart.js';
 import 'leaflet/dist/leaflet.css';
 import './Dashboard.css';
+import regions from '../assets/maroc.json';
 
-// Fix for Leaflet default marker icon issue
+// Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -15,81 +16,14 @@ L.Icon.Default.mergeOptions({
 
 Chart.register(...registerables);
 
+// Project data
 const projectData = [
-  {
-    city: 'Casablanca',
-    lat: 33.5731,
-    lng: -7.5898,
-    numberOfProjects: 12,
-    completion: { '1': 4, '2': 5, '3': 2, '4': 1 },
-    crrDates: [
-      { date: new Date(2025, 6, 10), status: 'completed' },
-      { date: new Date(2025, 6, 15), status: 'ongoing' },
-      { date: new Date(2025, 6, 20), status: 'scheduled' },
-      { date: new Date(2025, 6, 25), status: 'not_started' },
-    ],
-  },
-  {
-    city: 'Rabat',
-    lat: 34.0209,
-    lng: -6.8416,
-    numberOfProjects: 8,
-    completion: { '1': 3, '2': 3, '3': 1, '4': 1 },
-    crrDates: [
-      { date: new Date(2025, 6, 12), status: 'completed' },
-      { date: new Date(2025, 6, 18), status: 'ongoing' },
-      { date: new Date(2025, 6, 22), status: 'scheduled' },
-      { date: new Date(2025, 6, 28), status: 'not_started' },
-    ],
-  },
-  {
-    city: 'Marrakech',
-    lat: 31.6295,
-    lng: -7.9811,
-    numberOfProjects: 10,
-    completion: { '1': 2, '2': 4, '3': 3, '4': 1 },
-    crrDates: [
-      { date: new Date(2025, 6, 5), status: 'completed' },
-      { date: new Date(2025, 6, 14), status: 'ongoing' },
-      { date: new Date(2025, 6, 19), status: 'scheduled' },
-    ],
-  },
-  {
-    city: 'Fes',
-    lat: 34.0181,
-    lng: -5.0078,
-    numberOfProjects: 7,
-    completion: { '1': 1, '2': 2, '3': 3, '4': 1 },
-    crrDates: [
-      { date: new Date(2025, 6, 8), status: 'not_started' },
-      { date: new Date(2025, 6, 16), status: 'ongoing' },
-      { date: new Date(2025, 6, 23), status: 'completed' },
-    ],
-  },
-  {
-    city: 'Tangier',
-    lat: 35.7595,
-    lng: -5.8340,
-    numberOfProjects: 9,
-    completion: { '1': 2, '2': 3, '3': 2, '4': 2 },
-    crrDates: [
-      { date: new Date(2025, 6, 11), status: 'ongoing' },
-      { date: new Date(2025, 6, 17), status: 'ongoing' },
-      { date: new Date(2025, 6, 24), status: 'scheduled' },
-    ],
-  },
-  {
-    city: 'Agadir',
-    lat: 30.4278,
-    lng: -9.5981,
-    numberOfProjects: 6,
-    completion: { '1': 1, '2': 2, '3': 2, '4': 1 },
-    crrDates: [
-      { date: new Date(2025, 6, 9), status: 'scheduled' },
-      { date: new Date(2025, 6, 13), status: 'scheduled' },
-      { date: new Date(2025, 6, 21), status: 'completed' },
-    ],
-  },
+  { city: 'Casablanca', lat: 33.5731, lng: -7.5898, numberOfProjects: 12, completion: { '1': 4, '2': 5, '3': 2, '4': 1 }, crrDates: [{ date: new Date(2025, 6, 10), status: 'completed' }, { date: new Date(2025, 6, 15), status: 'ongoing' }, { date: new Date(2025, 6, 20), status: 'scheduled' }, { date: new Date(2025, 6, 25), status: 'not_started' }] },
+  { city: 'Rabat', lat: 34.0209, lng: -6.8416, numberOfProjects: 8, completion: { '1': 3, '2': 3, '3': 1, '4': 1 }, crrDates: [{ date: new Date(2025, 6, 12), status: 'completed' }, { date: new Date(2025, 6, 18), status: 'ongoing' }, { date: new Date(2025, 6, 22), status: 'scheduled' }, { date: new Date(2025, 6, 28), status: 'not_started' }] },
+  { city: 'Marrakech', lat: 31.6295, lng: -7.9811, numberOfProjects: 10, completion: { '1': 2, '2': 4, '3': 3, '4': 1 }, crrDates: [{ date: new Date(2025, 6, 5), status: 'completed' }, { date: new Date(2025, 6, 14), status: 'ongoing' }, { date: new Date(2025, 6, 19), status: 'scheduled' }] },
+  { city: 'Fes', lat: 34.0181, lng: -5.0078, numberOfProjects: 7, completion: { '1': 1, '2': 2, '3': 3, '4': 1 }, crrDates: [{ date: new Date(2025, 6, 8), status: 'not_started' }, { date: new Date(2025, 6, 16), status: 'ongoing' }, { date: new Date(2025, 6, 23), status: 'completed' }] },
+  { city: 'Tangier', lat: 35.7595, lng: -5.8340, numberOfProjects: 9, completion: { '1': 2, '2': 3, '3': 2, '4': 2 }, crrDates: [{ date: new Date(2025, 6, 11), status: 'ongoing' }, { date: new Date(2025, 6, 17), status: 'ongoing' }, { date: new Date(2025, 6, 24), status: 'scheduled' }] },
+  { city: 'Agadir', lat: 30.4278, lng: -9.5981, numberOfProjects: 6, completion: { '1': 1, '2': 2, '3': 2, '4': 1 }, crrDates: [{ date: new Date(2025, 6, 9), status: 'scheduled' }, { date: new Date(2025, 6, 13), status: 'scheduled' }, { date: new Date(2025, 6, 21), status: 'completed' }] },
 ];
 
 const getOverallData = () => {
@@ -115,26 +49,34 @@ const Dashboard = () => {
   useEffect(() => {
     if (!mapRef.current) {
       const moroccoBounds = [
-        [27.0, -13.5],
-        [36.5, -1.0],
+        [27.5, -13.0],
+        [36.0, -1.0],
       ];
 
       mapRef.current = L.map('map', {
-        center: [32.0, -6.0],
-        zoom: 5,
-        maxBounds: moroccoBounds,
-        maxBoundsViscosity: 1.0,
-        worldCopyJump: false,
-      });
+      center: [31.7917, -6.0],  // Move slightly east
+      zoom: 6.5,                // Zoom in a bit for clarity
+      maxBoundsViscosity: 1.0,
+      worldCopyJump: false,
+      zoomControl: true,
+    });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
+      // No tile layer → nothing else appears except Morocco
+      // Show only Morocco from the GeoJSON
+      L.geoJSON(regions, {
+        style: {
+          color: '#0d6efd',       // Blue border
+          weight: 3,
+          fillColor: '#e0f7fa',   // Soft turquoise fill
+          fillOpacity: 1,
+          dashArray: '5,5',       // Dotted outline for effect
+        },
+        onEachFeature: (feature, layer) => {
+          layer.bindPopup(feature.properties['name:en']);
+        },
       }).addTo(mapRef.current);
 
-      mapRef.current.fitBounds(moroccoBounds);
-      const fittedZoom = mapRef.current.getZoom();
-      mapRef.current.setMinZoom(fittedZoom);
-
+      // Add city markers and labels
       projectData.forEach((zone) => {
         const status = zone.crrDates[0]?.status || 'not_started';
         const colorMap = {
@@ -152,13 +94,19 @@ const Dashboard = () => {
           radius: 20000,
         }).addTo(mapRef.current);
 
+        circle.bindTooltip(zone.city, {
+          permanent: true,
+          direction: 'top',
+          className: 'city-label',
+          offset: [0, -10],
+        });
+
         circle.on('click', () => {
           setSelectedZone(zone);
           setStatusFilter('all');
         });
       });
 
-      // Invalidate size to ensure map renders correctly
       setTimeout(() => {
         mapRef.current.invalidateSize();
       }, 100);
@@ -168,33 +116,27 @@ const Dashboard = () => {
   useEffect(() => {
     if (pieChartRef.current) {
       const ctx = pieChartRef.current.getContext('2d');
-      if (pieChartRef.current.chart) {
-        pieChartRef.current.chart.destroy();
-      }
+      if (pieChartRef.current.chart) pieChartRef.current.chart.destroy();
 
       pieChartRef.current.chart = new Chart(ctx, {
         type: 'pie',
         data: {
           labels: ['CRR 1', 'CRR 2', 'CRR 3', 'CRR 4'],
-          datasets: [
-            {
-              label: 'Projects by CRR',
-              data: [
-                selectedZone.completion['1'],
-                selectedZone.completion['2'],
-                selectedZone.completion['3'],
-                selectedZone.completion['4'],
-              ],
-              backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545'],
-            },
-          ],
+          datasets: [{
+            label: 'Projects by CRR',
+            data: [
+              selectedZone.completion['1'],
+              selectedZone.completion['2'],
+              selectedZone.completion['3'],
+              selectedZone.completion['4'],
+            ],
+            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545'],
+          }],
         },
         options: {
           responsive: true,
           plugins: {
-            legend: {
-              position: 'bottom',
-            },
+            legend: { position: 'bottom' },
           },
         },
       });
@@ -213,14 +155,7 @@ const Dashboard = () => {
 
   return (
     <Container fluid className="p-0 position-relative">
-      <div
-        id="map"
-        className="map-container"
-        style={{
-          height: '100vh',
-          width: '100%',
-        }}
-      ></div>
+      <div id="map" className="map-container"></div>
       <div className="overlay-container">
         <Row>
           <Col xs={12} className="mb-3">
