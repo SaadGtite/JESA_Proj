@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const app = express();
 
@@ -18,6 +19,7 @@ const projectRouter = require('./routes/project.js'); // Ensure this file exists
 
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRouter); 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
   res.send('Hello from backend!');

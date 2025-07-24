@@ -1,476 +1,392 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Dropdown } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import './Projects.css';
-import projImg from '../assets/proj-img.png';
+const express = require('express');
+const router = express.Router();
+const Project = require('../models/Project');
+const mongoose = require('mongoose');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
-// Icons
-const EditIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-  </svg>
-);
+// Set up multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname); // Unique filename
+  },
+});
 
-const DeleteIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"></polyline>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-    <line x1="10" y1="11" x2="10" y2="17"></line>
-    <line x1="14" y1="11" x2="14" y2="17"></line>
-  </svg>
-);
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed!'), false);
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
 
-const ExportIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-    <polyline points="7 10 12 15 17 10"></polyline>
-    <line x1="12" y1="15" x2="12" y2="3"></line>
-  </svg>
-);
+// Route to create a project
+router.post('/create', upload.single('picture'), async (req, res) => {
+  try {
+    const {
+      'responsible office': responsibleOffice,
+      'name project': nameProject,
+      'number project': numberProject,
+      'project scope': projectScope,
+      'manager constructor': managerConstructor,
+      'manager': manager,
+      'review date': reviewDate,
+      'review team members': reviewTeamMembers,
+      'project members interviewed': projectMembersInterviewed,
+      location,
+      sectorManager,
+    } = req.body;
 
-const ProceedIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14"></path>
-    <polyline points="12 5 19 12 12 19"></polyline>
-  </svg>
-);
+    // Convert reviewDate to Date object if provided
+    const parsedReviewDate = reviewDate ? new Date(reviewDate) : new Date();
 
-const MenuIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="1"></circle>
-    <circle cx="12" cy="5" r="1"></circle>
-    <circle cx="12" cy="19" r="1"></circle>
-  </svg>
-);
+    // Prepare project data
+    const projectData = {
+      'responsible office': responsibleOffice,
+      'name project': nameProject,
+      'number project': numberProject,
+      'project scope': projectScope,
+      'manager constructor': managerConstructor,
+      'manager': manager,
+      'review date': parsedReviewDate,
+      'review team members': reviewTeamMembers ? (Array.isArray(reviewTeamMembers) ? reviewTeamMembers : [reviewTeamMembers]) : [],
+      'project members interviewed': projectMembersInterviewed ? (Array.isArray(projectMembersInterviewed) ? projectMembersInterviewed : [projectMembersInterviewed]) : [],
+      location: location || null, // Optional field
+      sectorManager: sectorManager || 'Other', // Default from schema if not provided
+    };
 
-const formatDate = (dateString) => {
-  if (!dateString) return '';
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(dateString));
-};
+    // Handle image upload
+    if (req.file) {
+      projectData.picture = `/uploads/${req.file.filename}`; // Store relative path
+    }
 
-// Progress bar component with 4 segments
-const ProgressBarSegments = ({ sectionsCompleted }) => {
-  return (
-    <div
-      className="progress-bar-segments"
-      style={{
-        display: 'flex',
-        gap: 4,
-        minWidth: 100,
-        justifyContent: 'center',
-        flexGrow: 1,
-        marginLeft: 16,
-        marginRight: 16,
-      }}
-    >
-      {sectionsCompleted.map((completed, idx) => (
-        <div
-          key={idx}
-          style={{
-            flex: 1,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: completed ? '#28a745' : '#ccc',
-            transition: 'background-color 0.3s ease',
-          }}
-          title={`CRR ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
-        />
-      ))}
-    </div>
-  );
-};
+    // Create and save the project
+    const project = new Project(projectData);
+    const savedProject = await project.save();
 
-// Circle progress bar for card view
-const CircleProgressBar = ({ sectionsCompleted }) => {
-  return (
-    <div className="circle-progress-bar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      {sectionsCompleted.map((completed, idx) => (
-        <div key={idx} style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            style={{
-              width: 12,
-              height: 12,
-              borderRadius: '50%',
-              backgroundColor: completed ? '#28a745' : '#ccc',
-              transition: 'background-color 0.3s ease',
-            }}
-            title={`Section ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
-          />
-          {idx < sectionsCompleted.length - 1 && (
-            <div
-              style={{
-                width: 16,
-                height: 2,
-                backgroundColor: completed && sectionsCompleted[idx + 1] ? '#28a745' : '#ccc',
-                transition: 'background-color 0.3s ease',
-              }}
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
+    res.status(201).json(savedProject);
+  } catch (error) {
+    console.error('Error creating project:', error);
+    res.status(400).json({ message: error.message });
+  }
+});
 
-function ProjectTable() {
-  const [projects, setProjects] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
-  const [expandedCrr, setExpandedCrr] = useState(null); // Track expanded CRR
-  const navigate = useNavigate();
+// Include GET routes if needed (from previous steps)
+router.get('/', async (req, res) => {
+  try {
+    const projects = await Project.find();
+    res.json(projects);
+    
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/projects')
-      .then(res => res.json())
-      .then(data => setProjects(data))
-      .catch(error => console.error('Error fetching projects:', error));
-  }, []);
+router.get('/:id', async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (project) {
+      res.json(project);
+    } else {
+      res.status(404).json({ message: 'Project not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
-  const handleRowClick = (project) => {
-    setSelectedProject(project);
-    setShowModal(true);
-    setExpandedCrr(null);
-  };
+// Simplified questions arrays with only the 'text' attribute
+const section1Questions = [
+  { text: 'Does the team have documented procedures?' },
+  { text: 'Are the procedures up to date?' },
+  { text: 'Are procedures reviewed periodically?' },
+  { text: 'Are procedures accessible to all team members?' },
+  { text: 'Do procedures cover all critical processes?' },
+  { text: 'Are changes to procedures tracked?' },
+  { text: 'Are obsolete procedures removed from circulation?' },
+  { text: 'Are procedures approved by management?' },
+  { text: 'Are responsibilities clearly defined in procedures?' },
+  { text: 'Are there templates for creating new procedures?' },
+  { text: 'Are procedures written in clear language?' },
+  { text: 'Are procedures tested before implementation?' },
+  { text: 'Is there training on using procedures?' },
+  { text: 'Are deviations from procedures documented?' },
+  { text: 'Is feedback on procedures collected from users?' },
+  { text: 'Are procedures aligned with company policies?' },
+  { text: 'Are procedures compliant with regulations?' },
+  { text: 'Are there KPIs related to procedure adherence?' },
+  { text: 'Are procedure owners assigned?' },
+  { text: 'Are procedures available in digital format?' }
+];
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedProject(null);
-    setExpandedCrr(null);
-  };
+const section2Questions = [
+  { text: 'Is risk assessment performed regularly?' },
+  { text: 'Are mitigation plans documented?' },
+  { text: 'Are risks prioritized by impact and likelihood?' },
+  { text: 'Is risk assessment reviewed by management?' },
+  { text: 'Are new projects assessed for risk?' },
+  { text: 'Are residual risks documented?' },
+  { text: 'Are historical risks tracked and analyzed?' },
+  { text: 'Is there a risk register?' },
+  { text: 'Are risk owners assigned?' },
+  { text: 'Are mitigation plans tested?' },
+  { text: 'Are risks updated when changes occur?' },
+  { text: 'Is risk assessment methodology documented?' },
+  { text: 'Are external risks considered?' },
+  { text: 'Is training provided on risk management?' },
+  { text: 'Are lessons learned used to update risk plans?' },
+  { text: 'Are risk indicators monitored?' },
+  { text: 'Are contingency plans developed for high risks?' },
+  { text: 'Are risk assessments auditable?' },
+  { text: 'Are stakeholders informed of key risks?' },
+  { text: 'Are risk thresholds clearly defined?' }
+];
 
-  const handleDelete = async (e, id) => {
-    e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
-          method: 'DELETE'
-        });
-        if (!res.ok) throw new Error();
-        setProjects(projects.filter(p => p._id !== id));
-      } catch {
-        alert('Failed to delete project');
+const section3Questions = [
+  { text: 'Is training provided to new employees?' },
+  { text: 'Is training material reviewed annually?' },
+  { text: 'Are training records maintained?' },
+  { text: 'Is refresher training provided regularly?' },
+  { text: 'Is training effectiveness evaluated?' },
+  { text: 'Are trainers qualified?' },
+  { text: 'Is on-the-job training documented?' },
+  { text: 'Are training needs assessed periodically?' },
+  { text: 'Is training aligned with job roles?' },
+  { text: 'Are e-learning modules available?' },
+  { text: 'Are employees required to complete mandatory training?' },
+  { text: 'Are training attendance records kept?' },
+  { text: 'Is feedback collected after training sessions?' },
+  { text: 'Are external training sessions tracked?' },
+  { text: 'Is specialized training provided for certain roles?' },
+  { text: 'Is training updated for process changes?' },
+  { text: 'Are training materials accessible online?' },
+  { text: 'Is training part of employee onboarding?' },
+  { text: 'Are there KPIs for training completion?' },
+  { text: 'Is training budgeted annually?' }
+];
+
+const section4Questions = [
+  { text: 'Are deliverables tracked in a central system?' },
+  { text: 'Are delivery dates updated?' },
+  { text: 'Are deliverables reviewed before submission?' },
+  { text: 'Are deliverable templates standardized?' },
+  { text: 'Are delivery delays documented?' },
+  { text: 'Are deliverables approved by stakeholders?' },
+  { text: 'Is version control applied to deliverables?' },
+  { text: 'Are deliverables archived securely?' },
+  { text: 'Are deliverable quality criteria defined?' },
+  { text: 'Are deliverables aligned with requirements?' },
+  { text: 'Are deliverables validated by recipients?' },
+  { text: 'Are deliverable dependencies identified?' },
+  { text: 'Are delivery risks assessed?' },
+  { text: 'Are deliverable changes communicated promptly?' },
+  { text: 'Are metrics tracked for deliverable performance?' },
+  { text: 'Are deliverables accessible to authorized users?' },
+  { text: 'Are delivery milestones defined?' },
+  { text: 'Is there a process for deliverable handover?' },
+  { text: 'Are deliverables updated after stakeholder feedback?' },
+  { text: 'Is compliance of deliverables monitored?' }
+];
+
+router.post('/:projectId/crrs', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { title } = req.body;
+
+    // Log request details for debugging
+    console.log('CRR Request:', { projectId, title });
+
+    // Validate input
+    if (!title) {
+      console.log('Validation failed: Missing title');
+      return res.status(400).json({ message: 'Title is required' });
+    }
+
+    // Validate projectId format (MongoDB ObjectId)
+    if (!projectId.match(/^[0-9a-fA-F]{24}$/)) {
+      console.log('Validation failed: Invalid projectId format');
+      return res.status(400).json({ message: 'Invalid projectId format' });
+    }
+    
+
+    // Find the project
+    const project = await Project.findById(projectId);
+    if (!project) {
+      console.log('Project not found for ID:', projectId);
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    // Ensure crrs array exists
+    if (!Array.isArray(project.crrs)) {
+      project.crrs = [];
+    }
+
+    // Build CRR with simplified sections
+    const newCrr = {
+      title,
+      sections: [
+        { title: 'Section 1', questions: section1Questions },
+        { title: 'Section 2', questions: section2Questions },
+        { title: 'Section 3', questions: section3Questions },
+        { title: 'Section 4', questions: section4Questions }
+      ]
+    };
+
+    // Add CRR to project and save
+    project.crrs.push(newCrr);
+    await project.save();
+
+    console.log('CRR created successfully:', newCrr);
+    res.status(201).json({ message: 'CRR created successfully', crr: newCrr });
+  } catch (error) {
+    console.error('Error creating CRR:', error.message, error.stack);
+    res.status(500).json({ message: `Failed to create CRR: ${error.message}` });
+  }
+});
+
+
+router.put('/:id', async (req, res) => {
+  try {
+    const {
+      'responsible office': responsibleOffice,
+      'name project': nameProject,
+      'number project': numberProject,
+      'project scope': projectScope,
+      'manager constructor': managerConstructor,
+      'manager': manager,
+      'review date': reviewDate,
+      'review team members': reviewTeamMembers,
+      'project members interviewed': projectMembersInterviewed
+    } = req.body;
+
+    const updatedProject = await Project.findByIdAndUpdate(
+      req.params.id,
+      {
+        'responsible office': responsibleOffice,
+        'name project': nameProject,
+        'number project': numberProject,
+        'project scope': projectScope,
+        'manager constructor': managerConstructor,
+        'manager': manager,
+        'review date': reviewDate,
+        'review team members': reviewTeamMembers,
+        'project members interviewed': projectMembersInterviewed
+      },
+      { new: true } // pour retourner le projet modifié
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+     
+    res.json(updatedProject);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  console.log('Delete request for id:', req.params.id);
+  try {
+    const deletedProject = await Project.findByIdAndDelete(req.params.id);
+
+    if (!deletedProject) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+       console.log('Section with raw questions:', JSON.stringify(project.crrs[0].sections[0], null, 2));
+    res.json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/:projectId/crrs/:crrId', async (req, res) => {
+  try {
+    const { projectId, crrId } = req.params;
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    const crr = project.crrs.id(crrId);
+    if (!crr) return res.status(404).json({ message: 'CRR not found' });
+
+   const sectionsWithVirtuals = crr.sections.map(section => {
+  const sectionJSON = section.toJSON();
+  return sectionJSON;
+});
+
+res.json({ sections: sectionsWithVirtuals });
+
+
+  } catch (error) {
+    console.error('Error fetching CRR:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.put('/:projectId/crrs/:crrId/section/:sectionNumber', async (req, res) => {
+  try {
+    const { projectId, crrId, sectionNumber } = req.params;
+    const { questions } = req.body;
+
+    if (!questions || !Array.isArray(questions)) {
+      return res.status(400).json({ message: 'Questions must be an array' });
+    }
+
+    const sectionIndex = parseInt(sectionNumber) - 1;
+    if (isNaN(sectionIndex) || sectionIndex < 0) {
+      return res.status(400).json({ message: 'Invalid section number' });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const crr = project.crrs.id(crrId);
+    if (!crr) {
+      return res.status(404).json({ message: 'CRR not found' });
+    }
+
+    if (!crr.sections[sectionIndex]) {
+      return res.status(404).json({ message: `Section ${sectionNumber} not found` });
+    }
+
+    // Update existing questions selectively
+    for (const newQ of questions) {
+      const existingQ = crr.sections[sectionIndex].questions.find(q => q._id.toString() === newQ._id);
+      if (existingQ) {
+        existingQ.text = newQ.text || existingQ.text;
+        existingQ.actions = newQ.actions || existingQ.actions;
+        existingQ.referenceDocument = newQ.referenceDocument || existingQ.referenceDocument;
+        existingQ.deliverable = newQ.deliverable || existingQ.deliverable;
+        existingQ.score = newQ.score !== undefined ? newQ.score : existingQ.score;
+        existingQ.isNA = newQ.isNA !== undefined ? newQ.isNA : existingQ.isNA;
+        existingQ.showstopper = newQ.showstopper !== undefined ? newQ.showstopper : existingQ.showstopper;
+        existingQ.comments = newQ.comments || existingQ.comments;
+      } else {
+        console.warn(`Question with _id ${newQ._id} not found, skipping`);
       }
     }
-  };
 
-  const handleExport = (e, id) => {
-    e.stopPropagation();
-    alert(`Exporting project ID: ${id}`);
-  };
+    await project.save();
+    res.json({ message: 'Section updated successfully' });
+  } catch (error) {
+    console.error('Error updating section:', error);
+    res.status(500).json({ message: 'Internal server error', details: error.message });
+  }
+});
 
-  const toggleViewMode = () => {
-    setViewMode(viewMode === 'table' ? 'card' : 'table');
-  };
-
-  const toggleCrr = (index) => {
-    setExpandedCrr(expandedCrr === index ? null : index);
-  };
-
-  return (
-    <div className="container-fluid py-4 project-dashboard">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 className="mb-0 dashboard-heading">Projects</h2>
-        <Button variant="outline-primary" onClick={toggleViewMode}>
-          {viewMode === 'table' ? 'Switch to Card View' : 'Switch to Table View'}
-        </Button>
-      </div>
-
-      {viewMode === 'table' ? (
-        <div className="table-container shadow-sm">
-          <Table responsive hover className="project-table align-middle">
-            <thead>
-              <tr>
-                <th>Project Name</th>
-                <th>Description</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map(project => {
-                const crrCompletions = Array(4)
-                  .fill(false)
-                  .map((_, idx) =>
-                    project.crrs && idx < project.crrs.length
-                      ? project.crrs[idx].sections
-                          .map(section => section.allQuestionsCompleted)
-                          .every(completed => completed)
-                      : false
-                  );
-
-                return (
-                  <tr
-                    key={project._id}
-                    onClick={() => handleRowClick(project)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <td>{project['name project']}</td>
-                    <td className="text-muted">{project['project scope']}</td>
-                    <td className="text-muted">{formatDate(project['review date'])}</td>
-                    <td style={{ display: 'flex', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <Button
-                          as={Link}
-                          to={`/projinfo/${project._id}`}
-                          variant="link"
-                          className="action-btn"
-                          onClick={(e) => e.stopPropagation()}
-                          title="Edit Project"
-                        >
-                          <EditIcon />
-                        </Button>
-                        <Button
-                          variant="link"
-                          className="action-btn"
-                          onClick={(e) => handleDelete(e, project._id)}
-                          title="Delete Project"
-                        >
-                          <DeleteIcon />
-                        </Button>
-                        <Button
-                          variant="link"
-                          className="action-btn"
-                          onClick={(e) => handleExport(e, project._id)}
-                          title="Export Project"
-                        >
-                          <ExportIcon />
-                        </Button>
-                      </div>
-                      <ProgressBarSegments sectionsCompleted={crrCompletions} />
-                      {project.crrs && project.crrs.length > 0 ? (
-                        <Button
-                          variant="link"
-                          className="action-btn ms-auto"
-                          as={Link}
-                          to={`/${project._id}/crrs/${project.crrs[0]._id}`}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Proceed <ProceedIcon />
-                        </Button>
-                      ) : (
-                        <span className="text-muted ms-auto">No CRR available</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </div>
-      ) : (
-        <div className="card-container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {projects.map(project => {
-              const crrCompletions = Array(4)
-                .fill(false)
-                .map((_, idx) =>
-                  project.crrs && idx < project.crrs.length
-                    ? project.crrs[idx].sections
-                        .map(section => section.allQuestionsCompleted)
-                        .every(completed => completed)
-                    : false
-                );
-
-              return (
-                <div
-                  key={project._id}
-                  className="project-card"
-                  onClick={() => handleRowClick(project)}
-                >
-                  <img
-                    src={projImg}
-                    alt={project['name project']}
-                    className="project-card-image"
-                  />
-                  <div className="project-card-content">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h5 className="project-card-title">{project['name project']}</h5>
-                      <Dropdown onClick={(e) => e.stopPropagation()}>
-                        <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
-                          <MenuIcon />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="end">
-                          <Dropdown.Item as={Link} to={`/projinfo/${project._id}`}>
-                            <EditIcon style={{ marginRight: '8px' }} /> Edit
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={(e) => handleDelete(e, project._id)}>
-                            <DeleteIcon style={{ marginRight: '8px' }} /> Delete
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={(e) => handleExport(e, project._id)}>
-                            <ExportIcon style={{ marginRight: '8px' }} /> Export
-                          </Dropdown.Item>
-                          {project.crrs && project.crrs.length > 0 && (
-                            <Dropdown.Item as={Link} to={`/${project._id}/crrs/${project.crrs[0]._id}`}>
-                              <ProceedIcon style={{ marginRight: '8px' }} /> Proceed
-                            </Dropdown.Item>
-                          )}
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </div>
-                    <p className="project-card-description">{project['project scope']}</p>
-                    <p className="project-card-date">{formatDate(project['review date'])}</p>
-                    <CircleProgressBar sectionsCompleted={crrCompletions} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <Modal show={showModal} onHide={handleCloseModal} size="xl" centered className="project-modal">
-        <Modal.Header closeButton className="glass-modal-header">
-          <Modal.Title className="glass-modal-title">{selectedProject ? selectedProject['name project'] : 'Project Details'}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="glass-modal-body">
-          {selectedProject ? (
-            <div className="project-details-horizontal">
-              <div className="detail-section">
-                <h3 className="details-heading">Project Information</h3>
-                <div className="detail-grid">
-                  <div className="detail-card">
-                    <span className="detail-label">Project Number</span>
-                    <span className="detail-value">{selectedProject['number project']}</span>
-                  </div>
-                  <div className="detail-card">
-                    <span className="detail-label">Responsible Office</span>
-                    <span className="detail-value">{selectedProject['responsible office'] || 'N/A'}</span>
-                  </div>
-                  <div className="detail-card">
-                    <span className="detail-label">Manager</span>
-                    <span className="detail-value">{selectedProject['manager']}</span>
-                  </div>
-                  <div className="detail-card">
-                    <span className="detail-label">Manager Constructor</span>
-                    <span className="detail-value">{selectedProject['manager constructor']}</span>
-                  </div>
-                  <div className="detail-card detail-card-full">
-                    <span className="detail-label">Project Scope</span>
-                    <span className="detail-value">{selectedProject['project scope']}</span>
-                  </div>
-                  <div className="detail-card">
-                    <span className="detail-label">Review Date</span>
-                    <span className="detail-value">{formatDate(selectedProject['review date'])}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="detail-section">
-                <h3 className="details-heading">Team & Interviews</h3>
-                <div className="member-container">
-                  <div className="member-group">
-                    <span className="member-label">Review Team</span>
-                    {selectedProject['review team members']?.length > 0 ? (
-                      <div className="member-list">
-                        {selectedProject['review team members'].map((member, index) => (
-                          <span key={index} className="member-badge">{member}</span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted">No team members listed</p>
-                    )}
-                  </div>
-                  <div className="member-group">
-                    <span className="member-label">Interviewed</span>
-                    {selectedProject['project members interviewed']?.length > 0 ? (
-                      <div className="member-list">
-                        {selectedProject['project members interviewed'].map((member, index) => (
-                          <span key={index} className="member-badge member-badge-interviewed">{member}</span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted">No members interviewed</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="detail-section">
-                <h3 className="details-heading">CRR Assessments</h3>
-                {selectedProject.crrs?.length > 0 ? (
-                  <div className="crr-container">
-                    {selectedProject.crrs.map((crr, index) => (
-                      <div key={index} className="crr-card">
-                        <div className="crr-header" onClick={() => toggleCrr(index)}>
-                          <span className="crr-title">{crr.title}</span>
-                          <span className="crr-toggle-icon">
-                            {expandedCrr === index ? '−' : '+'}
-                          </span>
-                        </div>
-                        <div className={`crr-content ${expandedCrr === index ? 'crr-content-expanded' : ''}`}>
-                          <div className="crr-detail">
-                            <span className="detail-label">Created At</span>
-                            <span className="detail-value">{formatDate(crr.createdAt)}</span>
-                          </div>
-                          <div className="crr-detail">
-                            <span className="detail-label">Sections</span>
-                            <span className="detail-value">{crr.sections.length}</span>
-                          </div>
-                          <div className="crr-detail">
-                            <span className="detail-label">Status</span>
-                            <span className="detail-value">
-                              {crr.sections.every(section => section.allQuestionsCompleted) ? (
-                                <span className="status-complete">Complete</span>
-                              ) : (
-                                <span className="status-incomplete">Incomplete</span>
-                              )}
-                            </span>
-                          </div>
-                          <div className="crr-detail">
-                            <span className="detail-label">Progress</span>
-                            <div className="crr-progress">
-                              {crr.sections.map((section, idx) => (
-                                <div
-                                  key={idx}
-                                  className={`progress-dot ${section.allQuestionsCompleted ? 'progress-dot-complete' : ''}`}
-                                  title={`Section ${idx + 1} ${section.allQuestionsCompleted ? 'Complete' : 'Incomplete'}`}
-                                ></div>
-                              ))}
-                            </div>
-                          </div>
-                          <Button
-                            as={Link}
-                            to={`/${selectedProject._id}/crrs/${crr._id}`}
-                            variant="link"
-                            className="crr-link"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            View CRR <ProceedIcon />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted">No CRR assessments available</p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <p className="glass-modal-details">No project selected</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer className="glass-modal-footer">
-          <Button
-            variant="secondary"
-            onClick={handleCloseModal}
-            className="modal-close-btn"
-          >
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </div>
-  );
-}
-
-export default ProjectTable;
+module.exports = router;

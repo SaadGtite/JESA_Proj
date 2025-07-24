@@ -18,6 +18,9 @@ const NewProjectForm = () => {
   const managerRef = useRef(null);
   const constructorManagerRef = useRef(null);
   const projectScopeRef = useRef(null);
+  const locationRef = useRef(null); // Ref for location dropdown
+  const pictureRef = useRef(null); // Ref for file input
+  const sectorManagerRef = useRef(null); // Ref for sectorManager
   const reviewNameRef = useRef(null);
   const reviewRoleRef = useRef(null);
   const interviewNameRef = useRef(null);
@@ -28,13 +31,16 @@ const NewProjectForm = () => {
       fetch(`http://localhost:5000/api/projects/${id}`)
         .then(res => res.json())
         .then(data => {
-          if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'];
-          if (projectNameRef.current) projectNameRef.current.value = data['name project'];
-          if (projectNumberRef.current) projectNumberRef.current.value = data['number project'];
-          if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0, 10);
-          if (managerRef.current) managerRef.current.value = data.manager;
-          if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'];
-          if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'];
+          if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'] || '';
+          if (projectNameRef.current) projectNameRef.current.value = data['name project'] || '';
+          if (projectNumberRef.current) projectNumberRef.current.value = data['number project'] || '';
+          if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0, 10) || '';
+          if (managerRef.current) managerRef.current.value = data.manager || '';
+          if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'] || '';
+          if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'] || '';
+          if (locationRef.current) locationRef.current.value = data['location'] || ''; // Pre-fill location
+          if (pictureRef.current) pictureRef.current.value = data['picture'] || ''; // Pre-fill picture (if URL exists)
+          if (sectorManagerRef.current) sectorManagerRef.current.value = data['sectorManager'] || ''; // Pre-fill sectorManager
 
           setReviewTeam((data['review team members'] || []).map(item => {
             const [name, role] = item.split(':').map(s => s.trim());
@@ -55,26 +61,28 @@ const NewProjectForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const formData = {
-      'responsible office': responsibleOfficeRef.current.value,
-      'name project': projectNameRef.current.value,
-      'number project': projectNumberRef.current.value,
-      'review date': reviewDateRef.current.value,
-      manager: managerRef.current.value,
-      'manager constructor': constructorManagerRef.current.value,
-      'project scope': projectScopeRef.current.value,
-      'review team members': reviewTeam.map((member) => `${member.name}: ${member.role}`),
-      'project members interviewed': interviewTeam.map((member) => `${member.name}: ${member.role}`),
-    };
+    const formData = new FormData();
+    formData.append('responsible office', responsibleOfficeRef.current.value);
+    formData.append('name project', projectNameRef.current.value);
+    formData.append('number project', projectNumberRef.current.value);
+    formData.append('review date', reviewDateRef.current.value);
+    formData.append('manager', managerRef.current.value);
+    formData.append('manager constructor', constructorManagerRef.current.value);
+    formData.append('project scope', projectScopeRef.current.value);
+    formData.append('location', locationRef.current.value); // Add location
+    if (pictureRef.current.files[0]) formData.append('picture', pictureRef.current.files[0]); // Add image file
+    formData.append('sectorManager', sectorManagerRef.current.value); // Add sectorManager
+    reviewTeam.forEach((member, index) => formData.append(`review team members[${index}]`, `${member.name}: ${member.role}`));
+    interviewTeam.forEach((member, index) => formData.append(`project members interviewed[${index}]`, `${member.name}: ${member.role}`));
 
     if (
-      !formData['responsible office'] ||
-      !formData['name project'] ||
-      !formData['number project'] ||
-      !formData['review date'] ||
-      !formData.manager ||
-      !formData['manager constructor'] ||
-      !formData['project scope'] ||
+      !formData.get('responsible office') ||
+      !formData.get('name project') ||
+      !formData.get('number project') ||
+      !formData.get('review date') ||
+      !formData.get('manager') ||
+      !formData.get('manager constructor') ||
+      !formData.get('project scope') ||
       reviewTeam.length === 0 ||
       interviewTeam.length === 0
     ) {
@@ -86,21 +94,19 @@ const NewProjectForm = () => {
       // Step 1: Create the project
       const projectResponse = await fetch('http://localhost:5000/api/projects/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: formData, // Use FormData instead of JSON
       });
 
       if (!projectResponse.ok) {
         throw new Error('Failed to create project');
       }
-      if (!projectResponse.ok) throw new Error('Failed to create project');
 
       const projectData = await projectResponse.json();
-      const projectId = projectData._id; // Adjust based on your response structure (e.g., projectData.id)
+      const projectId = projectData._id; // Adjust based on your response structure
 
       // Step 2: Create the CRR for the project
       const crrData = {
-        title: projectNameRef.current.value, // Use project name as CRR title (modify if needed)
+        title: projectNameRef.current.value, // Use project name as CRR title
       };
 
       const crrResponse = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs`, {
@@ -124,32 +130,6 @@ const NewProjectForm = () => {
       console.error('Error:', err);
     }
   };
-
-  useEffect(() => {
-    if (id) {
-      fetch(`http://localhost:5000/api/projects/${id}`)
-        .then(res => res.json())
-        .then(data => {
-          // Pré-remplir les champs
-          if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'];
-          if (projectNameRef.current) projectNameRef.current.value = data['name project'];
-          if (projectNumberRef.current) projectNumberRef.current.value = data['number project'];
-          if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0,10); // pour input type="date"
-          if (managerRef.current) managerRef.current.value = data.manager;
-          if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'];
-          if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'];
-          setReviewTeam((data['review team members'] || []).map(item => {
-            const [name, role] = item.split(':').map(s => s.trim());
-            return { name, role };
-          }));
-          setInterviewTeam((data['project members interviewed'] || []).map(item => {
-            const [name, role] = item.split(':').map(s => s.trim());
-            return { name, role };
-          }));
-        })
-        .catch(err => console.error('Failed to fetch project for editing:', err));
-    }
-  }, [id]);
 
   const addOrUpdateMember = (type, name, role) => {
     if (editType === type && editIndex !== null) {
@@ -199,7 +179,7 @@ const NewProjectForm = () => {
         <h2 className="form-title">Create New Project</h2>
         <p className="form-subtitle">Enter the project information to begin the CRR validation process</p>
 
-        <form className="row g-4" onSubmit={handleSubmit}>
+        <form className="row g-4" onSubmit={handleSubmit} encType="multipart/form-data">
           <div className="col-md-6">
             <label className="form-label">Responsible Office <span className="text-danger">*</span></label>
             <input type="text" className="form-control" placeholder="Enter responsible office" ref={responsibleOfficeRef} required />
@@ -212,6 +192,21 @@ const NewProjectForm = () => {
 
             <label className="form-label mt-3">Review Date <span className="text-danger">*</span></label>
             <input type="date" className="form-control" ref={reviewDateRef} required />
+
+            <label className="form-label mt-3">Location</label>
+            <select className="form-control" ref={locationRef} defaultValue="">
+              <option value="" disabled>Select a city</option>
+              <option value="Agadir">Agadir</option>
+              <option value="Casablanca">Casablanca</option>
+              <option value="Fes">Fes</option>
+              <option value="Marrakech">Marrakech</option>
+              <option value="Rabat">Rabat</option>
+              <option value="Tangier">Tangier</option>
+              <option value="Oujda">Oujda</option>
+              <option value="Meknes">Meknes</option>
+              <option value="Tetouan">Tetouan</option>
+              <option value="Safi">Safi</option>
+            </select>
           </div>
 
           <div className="col-md-6">
@@ -223,11 +218,26 @@ const NewProjectForm = () => {
 
             <label className="form-label mt-3">Project Scope <span className="text-danger">*</span></label>
             <textarea className="form-control" rows="3" placeholder="Enter project scope details" ref={projectScopeRef} required />
+
+            <label className="form-label mt-3">Sector Manager</label>
+            <select className="form-control" ref={sectorManagerRef}>
+              <option value="">Select Sector</option>
+              <option value="Water">Water</option>
+              <option value="Energy">Energy</option>
+              <option value="Construction">Construction</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Education">Education</option>
+              <option value="Other">Other</option>
+            </select>
+
+            <label className="form-label mt-3">Project Image</label>
+            <input type="file" className="form-control" accept="image/*" ref={pictureRef} />
           </div>
 
           {/* Review Team Section */}
-          <div className="col-md-6 mt-4">
-            <label className="form-label">Review team member <span className="text-danger">*</span></label>
+          <div className="col-12 mt-4">
+            <label className="form-label">Review Team Members <span className="text-danger">*</span></label>
             <div className="input-group mb-3 team-input-group">
               <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef} />
               <select className="form-select" defaultValue="" ref={reviewRoleRef}>
@@ -258,8 +268,8 @@ const NewProjectForm = () => {
           </div>
 
           {/* Interview Team Section */}
-          <div className="col-md-6 mt-4">
-            <label className="form-label">Project team member interviewed <span className="text-danger">*</span></label>
+          <div className="col-12 mt-4">
+            <label className="form-label">Interviewed Team Members <span className="text-danger">*</span></label>
             <div className="input-group mb-3 team-input-group">
               <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} />
               <select className="form-select" defaultValue="" ref={interviewRoleRef}>

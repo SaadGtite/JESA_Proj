@@ -1,8 +1,10 @@
 /* Apply a base font and background for the entire page */
 .project-dashboard {
   font-family: 'Inter', sans-serif;
-  background: rgba(223, 225, 228, 0.2); /* Transparent light blue with glassy effect */}
+  background: rgba(223, 225, 228, 0.2); /* Transparent light blue with glassy effect */
+}
 
+/* Existing styles remain unchanged */
 .dashboard-heading {
   font-weight: 700;
   color: #2a3547;
@@ -15,7 +17,6 @@
 
 /* Optional: You can style .progress-bar-segments if you want */
 .progress-bar-segments div {
-  /* smooth transitions for color */
   transition: background-color 0.3s ease;
 }
 
@@ -23,12 +24,12 @@
 .table-container {
   border: 1px solid #e9ecef;
   border-radius: 12px;
-  overflow: hidden; /* important for rounded corners */
+  overflow: hidden;
   background-color: #ffffff;
 }
 
 .project-table {
-  margin-bottom: 0; /* Remove default Bootstrap table margin */
+  margin-bottom: 0;
 }
 
 /* Custom styles for the table header */
@@ -66,7 +67,7 @@
 }
 
 .project-table .project-name-cell {
-  color: #3f51b5; /* blue color */
+  color: #3f51b5;
   font-weight: 600;
 }
 
@@ -158,13 +159,13 @@
 }
 
 .detail-row:hover {
-  background-color: #f8f9fa; /* light gray on hover */
+  background-color: #f8f9fa;
 }
 
 .detail-row .fw-semibold {
   flex: 1;
   font-weight: 600;
-  color: #6c757d; /* secondary text */
+  color: #6c757d;
   text-transform: capitalize;
   font-size: 0.85rem;
   white-space: nowrap;
@@ -298,4 +299,23 @@
 
 .form-control {
   border-radius: 0.25rem;
+}
+
+/* New styles for image display */
+.project-card-image img {
+  transition: opacity 0.3s ease;
+}
+
+.project-card-image img[src=""] {
+  opacity: 0;
+}
+
+.project-modal .modal-body img {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease;
+}
+
+.project-modal .modal-body img[src=""] {
+  display: none;
 }

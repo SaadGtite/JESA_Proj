@@ -186,6 +186,8 @@ function ProjectTable() {
               <tr>
                 <th>Project Name</th>
                 <th>Description</th>
+                <th>Location</th> {/* New column for location */}
+                <th>Sector</th> {/* New column for sectorManager */}
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -210,6 +212,8 @@ function ProjectTable() {
                   >
                     <td>{project['name project']}</td>
                     <td className="text-muted">{project['project scope']}</td>
+                    <td className="text-muted">{project.location || 'N/A'}</td> {/* Display location */}
+                    <td className="text-muted">{project.sectorManager || 'N/A'}</td> {/* Display sectorManager */}
                     <td className="text-muted">{formatDate(project['review date'])}</td>
                     <td style={{ display: 'flex', alignItems: 'center' }}>
                       <div style={{ display: 'flex', gap: 8 }}>
@@ -262,66 +266,71 @@ function ProjectTable() {
           </Table>
         </div>
       ) : (
-        <div className="card-container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {projects.map(project => {
-              const crrCompletions = Array(4)
-                .fill(false)
-                .map((_, idx) =>
-                  project.crrs && idx < project.crrs.length
-                    ? project.crrs[idx].sections
-                        .map(section => section.allQuestionsCompleted)
-                        .every(completed => completed)
-                    : false
-                );
+  <div className="card-container">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+      {projects.map(project => {
+        const crrCompletions = Array(4)
+          .fill(false)
+          .map((_, idx) =>
+            project.crrs && idx < project.crrs.length
+              ? project.crrs[idx].sections
+                  .map(section => section.allQuestionsCompleted)
+                  .every(completed => completed)
+              : false
+          );
 
-              return (
-                <div
-                  key={project._id}
-                  className="project-card"
-                  onClick={() => handleRowClick(project)}
-                >
-                  <img
-                    src={projImg}
-                    alt={project['name project']}
-                    className="project-card-image"
-                  />
-                  <div className="project-card-content">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h5 className="project-card-title">{project['name project']}</h5>
-                      <Dropdown onClick={(e) => e.stopPropagation()}>
-                        <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
-                          <MenuIcon />
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu align="end">
-                          <Dropdown.Item as={Link} to={`/projinfo/${project._id}`}>
-                            <EditIcon style={{ marginRight: '8px' }} /> Edit
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={(e) => handleDelete(e, project._id)}>
-                            <DeleteIcon style={{ marginRight: '8px' }} /> Delete
-                          </Dropdown.Item>
-                          <Dropdown.Item onClick={(e) => handleExport(e, project._id)}>
-                            <ExportIcon style={{ marginRight: '8px' }} /> Export
-                          </Dropdown.Item>
-                          {project.crrs && project.crrs.length > 0 && (
-                            <Dropdown.Item as={Link} to={`/${project._id}/crrs/${project.crrs[0]._id}`}>
-                              <ProceedIcon style={{ marginRight: '8px' }} /> Proceed
-                            </Dropdown.Item>
-                          )}
-                        </Dropdown.Menu>
-                      </Dropdown>
-                    </div>
-                    <p className="project-card-description">{project['project scope']}</p>
-                    <p className="project-card-date">{formatDate(project['review date'])}</p>
-                    <CircleProgressBar sectionsCompleted={crrCompletions} />
-                  </div>
-                </div>
-              );
-            })}
+        return (
+          <div
+            key={project._id}
+            className="project-card"
+            onClick={() => handleRowClick(project)}
+          >
+            <img
+              src={project.picture ? `http://localhost:5000${project.picture}` : projImg}
+              alt={project['name project']}
+              className="project-card-image"
+              onError={(e) => {
+                console.log('Image load failed for:', project.picture); // Debug log
+                e.target.src = projImg; // Fallback to default image
+              }}
+            />
+            <div className="project-card-content">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h5 className="project-card-title">{project['name project']}</h5>
+                <Dropdown onClick={(e) => e.stopPropagation()}>
+                  <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
+                    <MenuIcon />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu align="end">
+                    <Dropdown.Item as={Link} to={`/projinfo/${project._id}`}>
+                      <EditIcon style={{ marginRight: '8px' }} /> Edit
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={(e) => handleDelete(e, project._id)}>
+                      <DeleteIcon style={{ marginRight: '8px' }} /> Delete
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={(e) => handleExport(e, project._id)}>
+                      <ExportIcon style={{ marginRight: '8px' }} /> Export
+                    </Dropdown.Item>
+                    {project.crrs && project.crrs.length > 0 && (
+                      <Dropdown.Item as={Link} to={`/${project._id}/crrs/${project.crrs[0]._id}`}>
+                        <ProceedIcon style={{ marginRight: '8px' }} /> Proceed
+                      </Dropdown.Item>
+                    )}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
+              <p className="project-card-description">{project['project scope']}</p>
+              <p className="project-card-date">
+                {formatDate(project['review date'])} | Location: {project.location || 'N/A'} | Sector: {project.sectorManager || 'N/A'}
+              </p>
+              <CircleProgressBar sectionsCompleted={crrCompletions} />
+            </div>
           </div>
-        </div>
-      )}
-
+        );
+      })}
+    </div>
+  </div>
+)}
       <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans">
         <Modal.Header 
           className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg"
@@ -356,6 +365,9 @@ function ProjectTable() {
                   <p className="text-gray-800">
                     <strong className="font-semibold">Project Scope:</strong> {selectedProject['project scope']}
                   </p>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Location:</strong> {selectedProject.location || 'N/A'} {/* New attribute */}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-800">
@@ -367,6 +379,20 @@ function ProjectTable() {
                   <p className="text-gray-800">
                     <strong className="font-semibold">Review Date:</strong> {formatDate(selectedProject['review date'])}
                   </p>
+                  <p className="text-gray-800">
+                    <strong className="font-semibold">Sector Manager:</strong> {selectedProject.sectorManager || 'N/A'} {/* New attribute */}
+                  </p>
+                  {selectedProject.picture && (
+                    <p className="text-gray-800">
+                      <strong className="font-semibold">Project Image:</strong>{' '}
+                      <img
+                        src={`http://localhost:5000${selectedProject.picture}`}
+                        alt={`${selectedProject['name project']} image`}
+                        style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'contain' }}
+                        onError={(e) => { e.target.style.display = 'none'; }} // Hide if image fails to load
+                      />
+                    </p>
+                  )}
                 </div>
               </div>
 
