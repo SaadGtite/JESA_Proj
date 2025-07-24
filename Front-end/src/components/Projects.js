@@ -322,7 +322,7 @@ function ProjectTable() {
         </div>
       )}
 
-      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans">
+      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans project-modal">
         <Modal.Header 
           className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg"
         >
@@ -340,98 +340,101 @@ function ProjectTable() {
           className="bg-white/10 backdrop-blur-lg border-x border-white/20 p-6"
         >
           {selectedProject ? (
-            <div className="space-y-6">
+            <div className="horizontal-sections">
               {/* Basic Project Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Project Name:</strong> {selectedProject['name project']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Project Number:</strong> {selectedProject['number project']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Project Scope:</strong> {selectedProject['project scope']}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Manager:</strong> {selectedProject['manager']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Manager Constructor:</strong> {selectedProject['manager constructor']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Review Date:</strong> {formatDate(selectedProject['review date'])}
-                  </p>
+              <div className="section-card">
+                <h3 className="section-heading">Basic Project Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="project-detail-text">
+                      <strong className="font-semibold">Project Name:</strong> {selectedProject['name project']}
+                    </p>
+                    <p className="project-detail-text">
+                      <strong className="font-semibold">Project Number:</strong> {selectedProject['number project']}
+                    </p>
+                    <p className="project-detail-text">
+                      <strong className="font-semibold">Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}
+                    </p>
+                    <p className="project-detail-text">
+                      <strong className="font-semibold">Project Scope:</strong> {selectedProject['project scope']}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="project-detail-text">
+                      <strong className="font-semibold">Manager:</strong> {selectedProject['manager']}
+                    </p>
+                    <p className="project-detail-text">
+                      <strong className="font-semibold">Manager Constructor:</strong> {selectedProject['manager constructor']}
+                    </p>
+                    <p className="project-detail-text">
+                      <strong className="font-semibold">Review Date:</strong> {formatDate(selectedProject['review date'])}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               {/* Team Members */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Review Team Members</h3>
+              <div className="section-card">
+                <h3 className="section-heading">Review Team Members</h3>
                 {selectedProject['review team members']?.length > 0 ? (
-                  <ul className="list-disc pl-5 text-gray-700">
+                  <ul className="member-list">
                     {selectedProject['review team members'].map((member, index) => (
-                      <li key={index}>{member}</li>
+                      <li key={index} className="member-item">{member}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-600 italic">No team members listed</p>
+                  <p className="project-detail-text italic">No team members listed</p>
                 )}
               </div>
 
               {/* Project Members Interviewed */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Project Members Interviewed</h3>
+              <div className="section-card">
+                <h3 className="section-heading">Project Members Interviewed</h3>
                 {selectedProject['project members interviewed']?.length > 0 ? (
-                  <ul className="list-disc pl-5 text-gray-700">
+                  <ul className="member-list">
                     {selectedProject['project members interviewed'].map((member, index) => (
-                      <li key={index}>{member}</li>
+                      <li key={index} className="member-item">{member}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-600 italic">No members interviewed</p>
+                  <p className="project-detail-text italic">No members interviewed</p>
                 )}
               </div>
 
               {/* CRR Details */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">CRR Assessments</h3>
+              <div className="section-card">
+                <h3 className="section-heading">CRR Assessments</h3>
                 {selectedProject.crrs?.length > 0 ? (
                   <div className="space-y-4">
                     {selectedProject.crrs.map((crr, index) => (
-                      <div key={index} className="border-l-4 border-blue-500 pl-4">
-                        <p className="text-gray-800">
+                      <div key={index} className="crr-assessment">
+                        <p className="project-detail-text">
                           <strong className="font-semibold">CRR Title:</strong> {crr.title}
                         </p>
-                        <p className="text-gray-800">
+                        <p className="project-detail-text">
                           <strong className="font-semibold">Created At:</strong> {formatDate(crr.createdAt)}
                         </p>
-                        <p className="text-gray-800">
+                        <p className="project-detail-text">
                           <strong className="font-semibold">Sections:</strong> {crr.sections.length}
                         </p>
-                        <p className="text-gray-800">
+                        <p className="project-detail-text">
                           <strong className="font-semibold">All Sections Completed:</strong>{' '}
                           {crr.sections.every(section => section.allQuestionsCompleted) ? (
-                            <span className="text-green-600">Yes</span>
+                            <span className="status-badge text-green-600">Yes</span>
                           ) : (
-                            <span className="text-red-600">No</span>
+                            <span className="status-badge text-red-600">No</span>
                           )}
                         </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-600 italic">No CRR assessments available</p>
+                  <p className="project-detail-text italic">No CRR assessments available</p>
                 )}
               </div>
             </div>
           ) : (
-            <p className="text-gray-600 italic text-center">No project selected</p>
+            <p className="project-detail-text italic text-center">No project selected</p>
           )}
         </Modal.Body>
         <Modal.Footer 

@@ -1,21 +1,16 @@
 /* Apply a base font and background for the entire page */
 .project-dashboard {
   font-family: 'Inter', sans-serif;
-  background: rgba(223, 225, 228, 0.2); /* Transparent light blue with glassy effect */}
+  background: rgba(223, 225, 228, 0.2); /* Transparent light blue with glassy effect */
+}
 
 .dashboard-heading {
   font-weight: 700;
   color: #2a3547;
 }
 
-.project-details p {
-  margin: 8px 0;
-  font-size: 16px;
-}
-
 /* Optional: You can style .progress-bar-segments if you want */
 .progress-bar-segments div {
-  /* smooth transitions for color */
   transition: background-color 0.3s ease;
 }
 
@@ -23,12 +18,12 @@
 .table-container {
   border: 1px solid #e9ecef;
   border-radius: 12px;
-  overflow: hidden; /* important for rounded corners */
+  overflow: hidden;
   background-color: #ffffff;
 }
 
 .project-table {
-  margin-bottom: 0; /* Remove default Bootstrap table margin */
+  margin-bottom: 0;
 }
 
 /* Custom styles for the table header */
@@ -66,7 +61,7 @@
 }
 
 .project-table .project-name-cell {
-  color: #3f51b5; /* blue color */
+  color: #3f51b5;
   font-weight: 600;
 }
 
@@ -81,64 +76,256 @@
   color: #3f51b5;
 }
 
-/* --- Custom Modal Styling --- */
+/* --- Enhanced Modal Styling --- */
 .project-modal .modal-content {
-  border-radius: 10px;
+  border-radius: 16px;
   border: none;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Fade-in animation for modal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .project-modal .modal-header {
-  background-color: #f7f9fc;
-  border-bottom: 1px solid #e9ecef;
-  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+  border-bottom: none;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.project-modal .modal-header .modal-title {
-  font-weight: 600;
-  color: #2a3547;
+.project-modal .modal-title {
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: #1e293b;
+  letter-spacing: -0.025em;
+}
+
+.project-modal .btn-close {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  padding: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.project-modal .btn-close:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .project-modal .modal-body {
-  padding: 1.5rem;
+  padding: 2rem;
+  font-size: 1rem;
+  color: #1e293b;
+  background: transparent;
+}
+
+.project-modal .modal-body .horizontal-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  max-height: 60vh;
+  overflow-x: auto;
+}
+
+.project-modal .modal-body .section-card {
+  /* Minimal styling to keep "detail card" unchanged */
+  flex: 1;
+  min-width: 250px;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+}
+
+.project-modal .modal-body .grid {
+  gap: 1rem;
+}
+
+.project-modal .modal-body .project-detail-text {
+  margin: 0.5rem 0;
   font-size: 0.95rem;
-  color: #212529;
+  line-height: 1.6;
+  color: #374151;
+  font-weight: 400;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  animation: textFadeIn 0.5s ease-in-out;
 }
 
-.project-modal .modal-body .details-heading {
-  font-weight: 600;
+.project-modal .modal-body .project-detail-text:first-child {
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+@keyframes textFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.project-modal .modal-body strong {
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: capitalize;
+  display: inline-block;
+  min-width: 140px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  animation: textFadeIn 0.5s ease-in-out;
+}
+
+.project-modal .modal-body .section-heading {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+  animation: headingScale 0.5s ease-in-out;
+}
+
+@keyframes headingScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.project-modal .modal-body .member-list {
+  padding-left: 1.5rem;
+  color: #4b5563;
+  list-style-type: none;
+}
+
+.project-modal .modal-body .member-list .member-item {
   margin-bottom: 0.75rem;
-  color: #2a3547;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  position: relative;
+  padding-left: 1.5rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  animation: listSlideIn 0.5s ease-in-out;
 }
 
-/* Remove default modal footer display */
+.project-modal .modal-body .member-list .member-item:hover {
+  color: #1e293b;
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 4px;
+}
+
+.project-modal .modal-body .member-list .member-item::before {
+  content: '\25CF'; /* Filled circle bullet */
+  position: absolute;
+  left: 0;
+  color: #3b82f6;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  animation: bulletPulse 0.5s ease-in-out;
+}
+
+@keyframes listSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bulletPulse {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.project-modal .modal-body .crr-assessment {
+  padding: 1rem;
+  border-left: 4px solid #3b82f6;
+}
+
+.project-modal .modal-body .crr-assessment p {
+  margin: 0.5rem 0;
+}
+
+.project-modal .modal-body .status-badge {
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.project-modal .modal-body .status-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.project-modal .modal-body .text-green-600 {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.project-modal .modal-body .text-red-600 {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+}
+
 .project-modal .modal-footer {
-  display: none;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+  border-top: none;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: flex-end;
 }
 
-/* Glassmorphism styles for modal components */
+.project-modal .modal-footer .btn {
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.project-modal .modal-footer .btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+/* Remove unused glassmorphism classes */
 .glass-modal-header,
 .glass-modal-body,
 .glass-modal-footer {
-  background: rgba(206, 198, 237, 0.275) !important;
-  border: none !important;
-  box-shadow: none !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.glass-modal-title {
-  width: 100%;
-  text-align: center;
-  color: #222;
-}
-
-.glass-modal-details {
-  text-align: center;
-}
-
-.glass-modal-footer {
-  justify-content: center !important;
+  display: none;
 }
 
 /* Horizontal detail layout */
@@ -158,13 +345,13 @@
 }
 
 .detail-row:hover {
-  background-color: #f8f9fa; /* light gray on hover */
+  background-color: #f8f9fa;
 }
 
 .detail-row .fw-semibold {
   flex: 1;
   font-weight: 600;
-  color: #6c757d; /* secondary text */
+  color: #6c757d;
   text-transform: capitalize;
   font-size: 0.85rem;
   white-space: nowrap;
@@ -280,6 +467,37 @@
 
 /* Responsive tweaks */
 @media (max-width: 576px) {
+  .project-modal .modal-body .horizontal-sections {
+    flex-direction: column;
+  }
+  .project-modal .modal-body .section-card {
+    min-width: 100%;
+    padding: 0.75rem;
+  }
+  .project-modal .modal-body .project-detail-text {
+    font-size: 0.9rem;
+    margin: 0.4rem 0;
+  }
+  .project-modal .modal-body .section-heading {
+    font-size: 1.15rem;
+  }
+  .project-modal .modal-body .member-list {
+    padding-left: 1.25rem;
+  }
+  .project-modal .modal-body .member-list .member-item {
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+    padding-left: 1.25rem;
+  }
+  .project-modal .modal-body .crr-assessment {
+    padding: 0.75rem;
+  }
+  .project-modal .modal-title {
+    font-size: 1.5rem;
+  }
+  .project-modal .modal-body {
+    padding: 1.5rem;
+  }
   .detail-row {
     flex-direction: column;
     align-items: flex-start;

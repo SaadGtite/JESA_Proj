@@ -1,5 +1,5 @@
 .glassy-bg {
-  background: rgba(135, 206, 235, 0.2); /* Light sky blue with transparency */
+  background: rgb(255, 255, 255); /* Light sky blue with transparency */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(135, 206, 235, 0.4); /* Matching border color */
@@ -9,6 +9,7 @@
 .map-container {
   width: 100%;
   max-width: 100%;
+  background: rgba(16, 74, 132, 0.579); /* Light sky blue with transparency */
   height: 100vh;
   position: fixed;
   top: 0;
@@ -17,7 +18,7 @@
 }
 
 .modern-container {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(222, 221, 221, 0.15);
   border-radius: 12px;
   padding: 20px;
   border: 1px solid rgba(255, 255, 255, 0.3);
