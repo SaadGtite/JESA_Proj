@@ -48,16 +48,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!mapRef.current) {
-      const moroccoBounds = [
-        [27.5, -13.0],
-        [36.0, -1.0],
-      ];
-
       mapRef.current = L.map('map', {
-      center: [31.7917, -6.0],  // Move slightly east
-      zoom: 6.5,                // Zoom in a bit for clarity
+      center: [30.994053, -15.867001],  // Move slightly east
+      zoom: 5.5,                // Zoom in a bit for clarity
       maxBoundsViscosity: 1.0,
       worldCopyJump: false,
+      minZoom: 5,
       zoomControl: true,
     });
 
