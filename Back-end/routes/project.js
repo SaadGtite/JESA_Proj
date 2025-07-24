@@ -41,6 +41,7 @@ router.get('/', async (req, res) => {
   try {
     const projects = await Project.find();
     res.json(projects);
+    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -171,6 +172,7 @@ router.post('/:projectId/crrs', async (req, res) => {
       console.log('Validation failed: Invalid projectId format');
       return res.status(400).json({ message: 'Invalid projectId format' });
     }
+    
 
     // Find the project
     const project = await Project.findById(projectId);
@@ -241,7 +243,7 @@ router.put('/:id', async (req, res) => {
     if (!updatedProject) {
       return res.status(404).json({ message: 'Project not found' });
     }
-
+     
     res.json(updatedProject);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -256,7 +258,7 @@ router.delete('/:id', async (req, res) => {
     if (!deletedProject) {
       return res.status(404).json({ message: 'Project not found' });
     }
-
+       console.log('Section with raw questions:', JSON.stringify(project.crrs[0].sections[0], null, 2));
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
     console.error('Delete error:', error);
@@ -273,8 +275,16 @@ router.get('/:projectId/crrs/:crrId', async (req, res) => {
     const crr = project.crrs.id(crrId);
     if (!crr) return res.status(404).json({ message: 'CRR not found' });
 
-    // Return ALL sections
-    res.json({ sections: crr.sections });
+   const sectionsWithVirtuals = crr.sections.map(section => {
+  const sectionJSON = section.toJSON();
+  console.log('🟢 Section raw data:', JSON.stringify(sectionJSON, null, 2));
+  console.log('🔍 allQuestionsCompleted:', sectionJSON.allQuestionsCompleted);
+  return sectionJSON;
+});
+
+res.json({ sections: sectionsWithVirtuals });
+
+
   } catch (error) {
     console.error('Error fetching CRR:', error);
     res.status(500).json({ message: 'Internal server error' });

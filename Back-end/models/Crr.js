@@ -8,4 +8,7 @@ const CrrSchema = new mongoose.Schema({
   sections: { type: [SectionSchema], default: [] }
 });
 
+CrrSchema.set('toJSON', { virtuals: true });
+CrrSchema.set('toObject', { virtuals: true });
+
 module.exports = CrrSchema;

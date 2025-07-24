@@ -6,10 +6,14 @@ const SectionSchema = new mongoose.Schema({
   questions: { type: [QuestionSchema], default: [] }
 });
 
-// Virtual field to check if all questions are completed
-SectionSchema.virtual('allQuestionsCompleted').get(function() {
-  return this.questions.every(question => {
-    return question.score !== null && !question.isNA;
+SectionSchema.virtual('allQuestionsCompleted').get(function () {
+  console.log('🔍 Checking allQuestionsCompleted virtual for section:', this.title);
+  return this.questions.every((q, idx) => {
+    const isCompleted = q.isNA === true || (q.score !== null && q.score !== undefined && q.isNA === false);
+    console.log(
+      `🔎 Q${idx + 1} (ID: ${q._id}) → text: "${q.text}", score: ${q.score}, isNA: ${q.isNA}, result: ${isCompleted}`
+    );
+    return isCompleted;
   });
 });
 

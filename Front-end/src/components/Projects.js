@@ -191,7 +191,19 @@ function ProjectTable() {
             </thead>
             <tbody>
               {projects.map(project => {
-                const sectionsCompleted = project.sectionsCompleted || [true, true, false, false];
+                const crrCompletions = Array(4)
+  .fill(false)
+  .map((_, idx) =>
+    project.crrs && idx < project.crrs.length
+      ? project.crrs[idx].sections
+          .map(section => {
+            console.log('Section virtual value:', section.allQuestionsCompleted); // DEBUG HERE
+            return section.allQuestionsCompleted;
+          })
+          .every(completed => completed)
+      : false
+  );
+
 
                 return (
                   <tr
@@ -231,7 +243,7 @@ function ProjectTable() {
                           <ExportIcon />
                         </Button>
                       </div>
-                      <ProgressBarSegments sectionsCompleted={sectionsCompleted} />
+                      <ProgressBarSegments sectionsCompleted={crrCompletions} />
                       {project.crrs && project.crrs.length > 0 ? (
                         <Button
                           variant="link"
@@ -256,7 +268,19 @@ function ProjectTable() {
         <div className="card-container">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {projects.map(project => {
-              const sectionsCompleted = project.sectionsCompleted || [true, true, false, false];
+              const crrCompletions = Array(4)
+  .fill(false)
+  .map((_, idx) =>
+    project.crrs && idx < project.crrs.length
+      ? project.crrs[idx].sections
+          .map(section => {
+            console.log('Section virtual value:', section.allQuestionsCompleted); // DEBUG HERE
+            return section.allQuestionsCompleted;
+          })
+          .every(completed => completed)
+      : false
+  );
+
               return (
                 <div
                   key={project._id}
@@ -295,7 +319,7 @@ function ProjectTable() {
                     </div>
                     <p className="project-card-description">{project['project scope']}</p>
                     <p className="project-card-date">{formatDate(project['review date'])}</p>
-                    <CircleProgressBar sectionsCompleted={sectionsCompleted} />
+                    <CircleProgressBar sectionsCompleted={crrCompletions} />
                   </div>
                 </div>
               );
