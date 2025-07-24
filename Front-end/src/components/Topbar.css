@@ -4,12 +4,12 @@
   left: 0;
   width: 100%;
   height: 60px;
-  background: rgba(76, 117, 179, 0.2); /* Transparent light blue with glassy effect */
+  background: rgba(76, 117, 179, 0.2);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   padding: 0 20px;
   color: rgb(255, 255, 255);
   z-index: 1000;
@@ -17,9 +17,10 @@
 }
 
 .topbar-logo {
-  height: 40px; /* Reduced height for better centering */
+  height: 40px;
   cursor: pointer;
 }
+
 .logo-container {
   display: flex;
   flex-direction: row;
@@ -27,9 +28,28 @@
   justify-content: flex-start;
   height: 60px;
 }
+
 .logo-text {
   font-size: 12px;
   color: #f0f0f0;
   font-weight: 300;
   letter-spacing: 0.5px;
+}
+
+.topbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.notification-icon,
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.username {
+  font-weight: 400;
 }

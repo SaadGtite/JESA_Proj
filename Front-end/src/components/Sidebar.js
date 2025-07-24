@@ -1,8 +1,7 @@
-// Sidebar.js
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  FaTachometerAlt, FaProjectDiagram, FaCog, FaSignOutAlt, FaPlus, FaBell, FaUserCircle
+  FaTachometerAlt, FaProjectDiagram, FaCog, FaSignOutAlt, FaPlus
 } from 'react-icons/fa';
 import './Sidebar.css';
 import DashboardPage from '../pages/Dashboard';
@@ -73,16 +72,6 @@ const Sidebar = () => {
             <FaPlus className="new-project-icon" />
             <span className="new-project-text">New Project</span>
           </button>
-        </div>
-        <div className="sidebar-icons">
-          <div className="notification-icon" onClick={() => alert('Notifications clicked')}>
-            <FaBell size={18} />
-          </div>
-          <div className="user-info" onClick={() => alert('User profile clicked')}>
-            <FaUserCircle size={24} />
-            <span className="username">{localStorage.getItem('username') || 'User'}</span>
-          </div>
-          
         </div>
       </div>
       <div className="content-area">
