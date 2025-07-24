@@ -9,7 +9,7 @@
 .map-container {
   width: 100%;
   max-width: 100%;
-  background: rgba(16, 74, 132, 0.579); /* Light sky blue with transparency */
+  background: rgba(235, 215, 191, 0.579); /* Light sky blue with transparency */
   height: 100vh;
   position: fixed;
   top: 0;
@@ -18,7 +18,7 @@
 }
 
 .modern-container {
-  background: rgba(222, 221, 221, 0.15);
+  background: rgba(117, 115, 115, 0.15);
   border-radius: 12px;
   padding: 20px;
   border: 1px solid rgba(255, 255, 255, 0.3);
