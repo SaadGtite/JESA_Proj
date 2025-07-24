@@ -120,7 +120,7 @@
 .glass-modal-header,
 .glass-modal-body,
 .glass-modal-footer {
-  background: rgba(61, 17, 237, 0.275) !important;
+  background: rgba(206, 198, 237, 0.275) !important;
   border: none !important;
   box-shadow: none !important;
   backdrop-filter: blur(8px);

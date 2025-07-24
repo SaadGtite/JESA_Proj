@@ -1,9 +1,10 @@
 .login-bg {
-  background-size:90%;
+  background-size: 90%;
   background-position: center;
   background-image: url('../assets/back.png');
   height: 100%;
 }
+
 .message {
   margin-bottom: 10px;
   padding: 10px 15px;
@@ -23,4 +24,13 @@
 .btn-primary:hover {
   background-color: #2563eb;
   border-color: #2563eb;
+}
+
+/* Glassy effect for the right side */
+.col-md-6.d-flex.align-items-center.justify-content-center {
+  background: rgba(59, 130, 246, 0.1); /* Semi-transparent blue */
+  backdrop-filter: blur(10px); /* Blur effect for glassmorphism */
+  -webkit-backdrop-filter: blur(10px); /* For Safari compatibility */
+  border-left: 1px solid rgba(255, 255, 255, 0.2); /* Subtle white border */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Soft shadow */
 }
