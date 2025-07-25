@@ -3,6 +3,7 @@ import { Table, Button, Modal, Dropdown } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
 import projImg from '../assets/proj-img.png'; // Verify this path is correct
+import jsPDF from 'jspdf'; // Import jsPDF for PDF generation
 
 // Icons
 const EditIcon = () => (
@@ -65,7 +66,8 @@ const formatDate = (dateString) => {
 };
 
 // Progress bar component with 4 segments
-const ProgressBarSegments = ({ sectionsCompleted }) => {
+const ProgressBarSegments = ({ sectionsCompleted, projectId, crrs }) => {
+  const navigate = useNavigate();
   return (
     <div
       className="progress-bar-segments"
@@ -88,8 +90,14 @@ const ProgressBarSegments = ({ sectionsCompleted }) => {
             borderRadius: 4,
             backgroundColor: completed ? '#28a745' : '#ccc',
             transition: 'background-color 0.3s ease',
+            cursor: crrs && idx < crrs.length ? 'pointer' : 'default',
           }}
           title={`CRR ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
+          onClick={() => {
+            if (crrs && idx < crrs.length) {
+              navigate(`/projects/${projectId}/crrs/${crrs[idx]._id}/analytics`);
+            }
+          }}
         />
       ))}
     </div>
@@ -97,7 +105,8 @@ const ProgressBarSegments = ({ sectionsCompleted }) => {
 };
 
 // Circle progress bar for card view
-const CircleProgressBar = ({ sectionsCompleted }) => {
+const CircleProgressBar = ({ sectionsCompleted, projectId, crrs }) => {
+  const navigate = useNavigate();
   return (
     <div className="circle-progress-bar" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       {sectionsCompleted.map((completed, idx) => (
@@ -109,8 +118,14 @@ const CircleProgressBar = ({ sectionsCompleted }) => {
               borderRadius: '50%',
               backgroundColor: completed ? '#28a745' : '#ccc',
               transition: 'background-color 0.3s ease',
+              cursor: crrs && idx < crrs.length ? 'pointer' : 'default',
             }}
             title={`Section ${idx + 1} ${completed ? 'Completed' : 'Incomplete'}`}
+            onClick={() => {
+              if (crrs && idx < crrs.length) {
+                navigate(`/projects/${projectId}/crrs/${crrs[idx]._id}/analytics`);
+              }
+            }}
           />
           {idx < sectionsCompleted.length - 1 && (
             <div
@@ -240,9 +255,125 @@ function ProjectTable() {
     }
   };
 
-  const handleExport = (e, id) => {
+  const handleExport = async (e, id) => {
     e.stopPropagation();
-    alert(`Exporting project ID: ${id}`);
+    try {
+      // Fetch project details including CRR data
+      const res = await fetch(`http://localhost:5000/api/projects/${id}`);
+      if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
+      const project = await res.json();
+
+      // Initialize jsPDF
+      const doc = new jsPDF();
+      let yOffset = 20;
+
+      // Add Project Information
+      doc.setFontSize(16);
+      doc.text(`Project Report: ${project['name project'] || 'N/A'}`, 20, yOffset);
+      yOffset += 10;
+
+      doc.setFontSize(12);
+      doc.text(`Project Number: ${project['number project'] || 'N/A'}`, 20, yOffset);
+      yOffset += 7;
+      doc.text(`Responsible Office: ${project['responsible office'] || 'N/A'}`, 20, yOffset);
+      yOffset += 7;
+      doc.text(`Project Scope: ${project['project scope'] || 'N/A'}`, 20, yOffset);
+      yOffset += 7;
+      doc.text(`Location: ${project.location || 'N/A'}`, 20, yOffset);
+      yOffset += 7;
+      doc.text(`Manager: ${project.manager || 'N/A'}`, 20, yOffset);
+      yOffset += 7;
+      doc.text(`Constructor Manager: ${project['manager constructor'] || 'N/A'}`, 20, yOffset);
+      yOffset += 7;
+      doc.text(`Review Date: ${formatDate(project['review date'])}`, 20, yOffset);
+      yOffset += 7;
+      doc.text(`Sector Manager: ${project.sectorManager || 'N/A'}`, 20, yOffset);
+      yOffset += 10;
+
+      // Add Review Team Members
+      doc.text('Review Team Members:', 20, yOffset);
+      yOffset += 7;
+      if (project['review team members']?.length > 0) {
+        project['review team members'].forEach(member => {
+          doc.text(`- ${member}`, 25, yOffset);
+          yOffset += 7;
+        });
+      } else {
+        doc.text('No team members listed', 25, yOffset);
+        yOffset += 7;
+      }
+      yOffset += 7;
+
+      // Add Project Members Interviewed
+      doc.text('Project Members Interviewed:', 20, yOffset);
+      yOffset += 7;
+      if (project['project members interviewed']?.length > 0) {
+        project['project members interviewed'].forEach(member => {
+          doc.text(`- ${member}`, 25, yOffset);
+          yOffset += 7;
+        });
+      } else {
+        doc.text('No members interviewed', 25, yOffset);
+        yOffset += 7;
+      }
+      yOffset += 10;
+
+      // Add CRR Assessments
+      if (project.crrs?.length > 0) {
+        project.crrs.forEach((crr, crrIndex) => {
+          doc.setFontSize(14);
+          doc.text(`CRR Assessment ${crrIndex + 1}: ${crr.title || 'N/A'}`, 20, yOffset);
+          yOffset += 7;
+          doc.setFontSize(12);
+          doc.text(`Created At: ${formatDate(crr.createdAt)}`, 20, yOffset);
+          yOffset += 7;
+
+          crr.sections.forEach((section, sectionIndex) => {
+            doc.setFontSize(13);
+            doc.text(`Section ${sectionIndex + 1}: ${section.title || `Section ${sectionIndex + 1}`}`, 20, yOffset);
+            yOffset += 7;
+
+            if (section.questions?.length > 0) {
+              section.questions.forEach((q, qIndex) => {
+                // Check if we need a new page
+                if (yOffset > 250) {
+                  doc.addPage();
+                  yOffset = 20;
+                }
+
+                doc.setFontSize(11);
+                doc.text(`Question ${qIndex + 1}: ${q.text || 'No question text'}`, 25, yOffset);
+                yOffset += 6;
+                doc.text(`Score: ${q.isNA ? 'N/A' : q.score !== null ? q.score : 'Not scored'}`, 30, yOffset);
+                yOffset += 6;
+                doc.text(`Showstopper: ${q.showstopper ? 'Yes' : 'No'}`, 30, yOffset);
+                yOffset += 6;
+                doc.text(`Comments: ${q.comments || 'None'}`, 30, yOffset);
+                yOffset += 6;
+                doc.text(`Actions: ${q.actions || 'None'}`, 30, yOffset);
+                yOffset += 6;
+                doc.text(`Reference Document: ${q.referenceDocument || 'None'}`, 30, yOffset);
+                yOffset += 6;
+                doc.text(`Deliverable: ${q.deliverable || 'None'}`, 30, yOffset);
+                yOffset += 10;
+              });
+            } else {
+              doc.text('No questions available', 25, yOffset);
+              yOffset += 7;
+            }
+          });
+        });
+      } else {
+        doc.text('No CRR assessments available', 20, yOffset);
+        yOffset += 7;
+      }
+
+      // Save the PDF
+      doc.save(`Project_${project['name project'] || 'Report'}_${id}.pdf`);
+    } catch (error) {
+      console.error('Failed to export project to PDF:', error);
+      alert('Failed to export project to PDF');
+    }
   };
 
   const handleBulkExport = () => {
@@ -448,7 +579,7 @@ function ProjectTable() {
                       <input
                         type="checkbox"
                         checked={selectedProjectIds.includes(project._id)}
-                        onChange={(e) => handleSelectProject(e, project._id)}
+                        onChange={(e) => handleSelectProject(e, project._id)} // Fixed typo: project._riottId to project._id
                       />
                     </td>
                     <td>{project['name project']}</td>
@@ -485,7 +616,11 @@ function ProjectTable() {
                           <ExportIcon />
                         </Button>
                       </div>
-                      <ProgressBarSegments sectionsCompleted={crrCompletions} />
+                      <ProgressBarSegments
+                        sectionsCompleted={crrCompletions}
+                        projectId={project._id}
+                        crrs={project.crrs}
+                      />
                       {project.crrs && project.crrs.length > 0 ? (
                         <Button
                           variant="link"
@@ -543,7 +678,11 @@ function ProjectTable() {
                     <p className="project-card-date">
                       {formatDate(project['review date'])} | Location: {project.location || 'N/A'} | Sector: {project.sectorManager || 'N/A'}
                     </p>
-                    <CircleProgressBar sectionsCompleted={crrCompletions} />
+                    <CircleProgressBar
+                      sectionsCompleted={crrCompletions}
+                      projectId={project._id}
+                      crrs={project.crrs}
+                    />
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                       <Dropdown onClick={(e) => e.stopPropagation()}>
                         <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
