@@ -43,6 +43,12 @@
   border: none;
 }
 
+.project-table .table-header th.sortable:hover {
+  background-color: #f8f9fa;
+  color: #3b82f6;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
 /* Custom styles for table rows and cells */
 .project-table tbody tr {
   transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
@@ -74,7 +80,140 @@
 }
 
 .action-btn:hover {
-  color: #3f51b5;
+  color: #3b82f6;
+}
+
+/* Style for search input */
+.search-input {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #8a96a7;
+}
+
+/* Style for the filter button */
+.filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.filter-btn:hover {
+  background-color: #3b82f6;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.filter-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Style for the filter dropdown */
+.filter-dropdown {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  min-width: 200px;
+}
+
+.filter-dropdown .dropdown-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.filter-dropdown .dropdown-item {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  color: #374151;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.filter-dropdown .dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #3b82f6;
+}
+
+.filter-dropdown .dropdown-divider {
+  border-top: 1px solid #e9ecef;
+}
+
+/* Style for export all button */
+.export-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.export-all-btn:hover {
+  background: #3b82f6;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.export-all-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Status badge styles */
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  text-transform: capitalize;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.status-badge.status-active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.status-badge.status-completed {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.status-badge.status-on-hold {
+  background: rgba(255, 193, 7, 0.15);
+  color: #d97706;
+}
+
+.status-badge.status-unknown {
+  background: rgba(108, 117, 125, 0.15);
+  color: #6c757d;
+}
+
+.status-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
 
 /* --- Enhanced Modal Styling --- */
@@ -144,7 +283,6 @@
 }
 
 .project-modal .modal-body .section-card {
-  /* Minimal styling to keep "detail card" unchanged */
   flex: 1;
   min-width: 250px;
   padding: 1rem;
@@ -512,6 +650,10 @@
   .project-card {
     margin: 0 auto;
     max-width: 100%;
+  }
+  .search-input {
+    max-width: 100%;
+    margin-bottom: 0.5rem;
   }
 }
 
