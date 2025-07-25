@@ -245,32 +245,6 @@ function ProjectTable() {
     alert(`Exporting project ID: ${id}`);
   };
 
-  const handleBulkExport = () => {
-    if (selectedProjectIds.length === 0) {
-      alert('No projects selected');
-      return;
-    }
-    const selectedProjects = filteredProjects.filter(p => selectedProjectIds.includes(p._id));
-    const csvContent = [
-      ['Project Name', 'Description', 'Location', 'Sector', 'Review Date'],
-      ...selectedProjects.map(p => [
-        `"${p['name project']}"`,
-        `"${p['project scope']}"`,
-        p.location || 'N/A',
-        p.sectorManager || 'N/A',
-        formatDate(p['review date'])
-      ])
-    ]
-      .map(row => row.join(','))
-      .join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'selected_projects_export.csv';
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
   const handleExportAll = () => {
     const csvContent = [
       ['Project Name', 'Description', 'Location', 'Sector', 'Review Date'],
@@ -376,26 +350,15 @@ function ProjectTable() {
             <ExportIcon /> Export All
           </Button>
           {viewMode === 'table' && (
-            <>
-              <Button
-                variant="outline-danger"
-                className="bulk-action-btn"
-                onClick={handleBulkDelete}
-                disabled={selectedProjectIds.length === 0}
-                title="Delete Selected Projects"
-              >
-                <DeleteIcon /> Delete Selected
-              </Button>
-              <Button
-                variant="outline-primary"
-                className="bulk-action-btn"
-                onClick={handleBulkExport}
-                disabled={selectedProjectIds.length === 0}
-                title="Export Selected Projects"
-              >
-                <ExportIcon /> Export Selected
-              </Button>
-            </>
+            <Button
+              variant="outline-danger"
+              className="bulk-action-btn"
+              onClick={handleBulkDelete}
+              disabled={selectedProjectIds.length === 0}
+              title="Delete Selected Projects"
+            >
+              <DeleteIcon /> Delete Selected
+            </Button>
           )}
         </div>
       </div>

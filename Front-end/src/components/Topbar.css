@@ -54,3 +54,7 @@
 .username {
   font-weight: 400;
 }
+
+.profile-dropdown div:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
