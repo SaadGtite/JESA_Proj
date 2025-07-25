@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal , Dropdown } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Table, Button, Modal, Dropdown } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
+import projImg from '../assets/proj-img.png'; // Verify this path is correct
 
 // Icons
 const EditIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2h14a2 2 0 0 2 2h14a2-7"></path>
-    <path d="M18.5 2a2.121 2.121 0 0 3 3L12 12l-4 1 1-4 9.5-9.5z"></path>
+    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
   </svg>
 );
 
@@ -138,6 +137,7 @@ function ProjectTable() {
   const [filter, setFilter] = useState({ sector: '', location: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name project', direction: 'asc' });
+  const [selectedProjectIds, setSelectedProjectIds] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -183,6 +183,8 @@ function ProjectTable() {
       return 0;
     });
     setFilteredProjects(result);
+    // Retain selections for projects still in filtered list
+    setSelectedProjectIds(prev => prev.filter(id => result.some(p => p._id === id)));
   }, [filter, projects, searchTerm, sortConfig]);
 
   const handleRowClick = (project) => {
@@ -205,8 +207,35 @@ function ProjectTable() {
         if (!res.ok) throw new Error();
         setProjects(projects.filter(p => p._id !== id));
         setFilteredProjects(filteredProjects.filter(p => p._id !== id));
+        setSelectedProjectIds(selectedProjectIds.filter(selectedId => selectedId !== id));
       } catch {
         alert('Failed to delete project');
+      }
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProjectIds.length === 0) {
+      alert('No projects selected');
+      return;
+    }
+    if (window.confirm(`Are you sure you want to delete ${selectedProjectIds.length} project(s)?`)) {
+      try {
+        await Promise.all(
+          selectedProjectIds.map(id =>
+            fetch(`http://localhost:5000/api/projects/${id}`, { method: 'DELETE' })
+              .then(res => {
+                if (!res.ok) throw new Error(`Failed to delete project ${id}`);
+                return id;
+              })
+          )
+        );
+        setProjects(projects.filter(p => !selectedProjectIds.includes(p._id)));
+        setFilteredProjects(filteredProjects.filter(p => !selectedProjectIds.includes(p._id)));
+        setSelectedProjectIds([]);
+      } catch (error) {
+        console.error('Error in bulk delete:', error);
+        alert('Failed to delete some projects');
       }
     }
   };
@@ -216,16 +245,41 @@ function ProjectTable() {
     alert(`Exporting project ID: ${id}`);
   };
 
+  const handleBulkExport = () => {
+    if (selectedProjectIds.length === 0) {
+      alert('No projects selected');
+      return;
+    }
+    const selectedProjects = filteredProjects.filter(p => selectedProjectIds.includes(p._id));
+    const csvContent = [
+      ['Project Name', 'Description', 'Location', 'Sector', 'Review Date'],
+      ...selectedProjects.map(p => [
+        `"${p['name project']}"`,
+        `"${p['project scope']}"`,
+        p.location || 'N/A',
+        p.sectorManager || 'N/A',
+        formatDate(p['review date'])
+      ])
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'selected_projects_export.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
   const handleExportAll = () => {
     const csvContent = [
-      ['Project Name', 'Description', 'Location', 'Sector', 'Review Date', 'Status'],
+      ['Project Name', 'Description', 'Location', 'Sector', 'Review Date'],
       ...filteredProjects.map(p => [
         `"${p['name project']}"`,
         `"${p['project scope']}"`,
         p.location || 'N/A',
         p.sectorManager || 'N/A',
-        formatDate(p['review date']),
-        p.status || 'Unknown'
+        formatDate(p['review date'])
       ])
     ]
       .map(row => row.join(','))
@@ -236,6 +290,21 @@ function ProjectTable() {
     link.download = 'projects_export.csv';
     link.click();
     URL.revokeObjectURL(link.href);
+  };
+
+  const handleSelectProject = (e, id) => {
+    e.stopPropagation();
+    setSelectedProjectIds(prev =>
+      prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedProjectIds(filteredProjects.map(p => p._id));
+    } else {
+      setSelectedProjectIds([]);
+    }
   };
 
   const toggleViewMode = () => {
@@ -306,6 +375,28 @@ function ProjectTable() {
           >
             <ExportIcon /> Export All
           </Button>
+          {viewMode === 'table' && (
+            <>
+              <Button
+                variant="outline-danger"
+                className="bulk-action-btn"
+                onClick={handleBulkDelete}
+                disabled={selectedProjectIds.length === 0}
+                title="Delete Selected Projects"
+              >
+                <DeleteIcon /> Delete Selected
+              </Button>
+              <Button
+                variant="outline-primary"
+                className="bulk-action-btn"
+                onClick={handleBulkExport}
+                disabled={selectedProjectIds.length === 0}
+                title="Export Selected Projects"
+              >
+                <ExportIcon /> Export Selected
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -314,6 +405,13 @@ function ProjectTable() {
           <Table responsive hover className="project-table align-middle">
             <thead>
               <tr>
+                <th style={{ width: '50px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedProjectIds.length === filteredProjects.length && filteredProjects.length > 0}
+                    onChange={handleSelectAll}
+                  />
+                </th>
                 <th onClick={() => handleSort('name project')} style={{ cursor: 'pointer' }} className="sortable">
                   Project Name {sortConfig.key === 'name project' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                 </th>
@@ -346,15 +444,19 @@ function ProjectTable() {
                     onClick={() => handleRowClick(project)}
                     style={{ cursor: 'pointer' }}
                   >
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedProjectIds.includes(project._id)}
+                        onChange={(e) => handleSelectProject(e, project._id)}
+                      />
+                    </td>
                     <td>{project['name project']}</td>
                     <td className="text-muted">{project['project scope']}</td>
                     <td className="text-muted">{project.location || 'N/A'}</td>
                     <td className="text-muted">{project.sectorManager || 'N/A'}</td>
                     <td className="text-muted">{formatDate(project['review date'])}</td>
                     <td style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span className={`status-badge status-${project.status?.toLowerCase() || 'unknown'}`}>
-                        {project.status || 'Unknown'}
-                      </span>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <Button
                           as={Link}
@@ -425,19 +527,17 @@ function ProjectTable() {
                   onClick={() => handleRowClick(project)}
                 >
                   <img
-                    src={project.picture ? `http://localhost:5000${project.picture}` : '../assets/proj-img.png' }
+                    src={project.picture ? `http://localhost:5000${project.picture}` : projImg}
                     alt={project['name project']}
                     className="project-card-image"
                     onError={(e) => {
                       console.log('Image load failed for:', project.picture);
+                      e.target.src = projImg;
                     }}
                   />
                   <div className="project-card-content">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h5 className="project-card-title">{project['name project']}</h5>
-                      <span className={`status-badge status-${project.status?.toLowerCase() || 'unknown'}`}>
-                        {project.status || 'Unknown'}
-                      </span>
                     </div>
                     <p className="project-card-description">{project['project scope']}</p>
                     <p className="project-card-date">

@@ -23,11 +23,36 @@ html, body {
   background-color: #ffffff;
   padding: 8px;
   border-radius: 10px;
-  max-width: 800px;
-  width: 95%;
+  width: 100%;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   margin: 0 auto 12px auto;
+}
+
+/* New project container for horizontal alignment */
+.project-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Project image container */
+.project-image-container {
+  flex: 0 0 300px;
+  background : transparent;
+  display: flex;
+  align-items: center;
+  order: -1; /* Moves image to the left */
+}
+
+.project-image {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
 }
 
 /* Titre principal */
@@ -47,6 +72,7 @@ h2 {
   border: 1px solid #cbd5e0;
   border-radius: 6px;
   padding: 10px;
+  flex: 1;
 }
 
 .info-row {
@@ -374,6 +400,29 @@ button.btn-primary:hover {
 
   .project-card {
     padding: 6px;
+    width: 100%;
+  }
+
+  .project-container {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .project-image-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    order: 0;
+  }
+
+  .project-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+  }
+
+  .project-info-table {
     width: 100%;
   }
 

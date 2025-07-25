@@ -210,22 +210,34 @@ const Section1 = () => {
     <div className="crr-section">
       {project && (
         <div className="project-card">
-          <h3 className="form-title">Project Information</h3>
-          <div className="project-info-table">
-            <div className="info-row">
-              <div className="info-cell"><strong>Responsible Office:</strong> {project['responsible office'] || 'N/A'}</div>
-              <div className="info-cell"><strong>Project Name:</strong> {project['name project'] || 'N/A'}</div>
+          <div className="project-container">
+            <div className="project-image-container">
+              <img
+                    src={project.picture ? `http://localhost:5000${project.picture}` : '../assets/proj-img.png' }
+                    alt={project['name project']}
+                    className="project-card-image"
+                    onError={(e) => {
+                      console.log('Image load failed for:', project.picture);
+                    }}
+                  />
             </div>
-            <div className="info-row">
-              <div className="info-cell"><strong>Project Number:</strong> {project['number project'] || 'N/A'}</div>
-              <div className="info-cell"><strong>Review Date:</strong> {project['review date']?.slice(0, 10) || 'N/A'}</div>
-            </div>
-            <div className="info-row">
-              <div className="info-cell"><strong>Manager:</strong> {project.manager || 'N/A'}</div>
-              <div className="info-cell"><strong>Constructor Manager:</strong> {project['manager constructor'] || 'N/A'}</div>
-            </div>
-            <div className="info-row full-width">
-              <div className="info-cell"><strong>Project Scope:</strong> {project['project scope'] || 'N/A'}</div>
+            <div className="project-info-table">
+              <h3 className="form-title">Project Information</h3>
+              <div className="info-row">
+                <div className="info-cell"><strong>Responsible Office:</strong> {project['responsible office'] || 'N/A'}</div>
+                <div className="info-cell"><strong>Project Name:</strong> {project['name project'] || 'N/A'}</div>
+              </div>
+              <div className="info-row">
+                <div className="info-cell"><strong>Project Number:</strong> {project['number project'] || 'N/A'}</div>
+                <div className="info-cell"><strong>Review Date:</strong> {project['review date']?.slice(0, 10) || 'N/A'}</div>
+              </div>
+              <div className="info-row">
+                <div className="info-cell"><strong>Manager:</strong> {project.manager || 'N/A'}</div>
+                <div className="info-cell"><strong>Constructor Manager:</strong> {project['manager constructor'] || 'N/A'}</div>
+              </div>
+              <div className="info-row full-width">
+                <div className="info-cell"><strong>Project Scope:</strong> {project['project scope'] || 'N/A'}</div>
+              </div>
             </div>
           </div>
         </div>
