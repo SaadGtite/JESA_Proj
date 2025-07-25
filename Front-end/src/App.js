@@ -60,7 +60,12 @@ function App() {
         <Route path="/projects/:projectId/crrs/:crrId" element={<Section2 />} />
         <Route path="/projects/:projectId/crrs/:crrId/section3" element={<Section3 />} />
         <Route path="/projects/:projectId/crrs/:crrId/section4" element={<Section4 />} /> {/* Added route for Section4 */}
-        <Route path="/projects/:projectId/crrs/:crrId/analytics" element={<Analytics />} /> {/* Added route for Analytics */}
+        <Route
+          path="/projects/:projectId/crrs/:crrId/analytics"
+          element={
+              <Analytics />
+          }
+        />
       </Routes>
     </Router>
   );
