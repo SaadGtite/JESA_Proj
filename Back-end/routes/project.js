@@ -5,6 +5,13 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const bodyParser = require('body-parser');
+
+
+
+// Add body parser middleware
+router.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded data
+router.use(bodyParser.json()); // Parse JSON data (optional, for other routes)
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -256,9 +263,9 @@ router.post('/:projectId/crrs', async (req, res) => {
   }
 });
 
-
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('picture'), async (req, res) => {
   try {
+    console.log('Received body:', req.body); // Debug: Log raw body
     const {
       'responsible office': responsibleOffice,
       'name project': nameProject,
@@ -268,48 +275,101 @@ router.put('/:id', async (req, res) => {
       'manager': manager,
       'review date': reviewDate,
       'review team members': reviewTeamMembers,
-      'project members interviewed': projectMembersInterviewed
+      'project members interviewed': projectMembersInterviewed,
+      location,
+      sectorManager,
+      picture: pictureFromBody,
     } = req.body;
 
+    // Validate required fields with explicit trimming
+    if (!responsibleOffice || responsibleOffice.trim() === '') {
+      return res.status(400).json({ message: 'Responsible Office is required and cannot be empty' });
+    }
+    if (!nameProject || nameProject.trim() === '') {
+      return res.status(400).json({ message: 'Project Name is required and cannot be empty' });
+    }
+
+    // Validate project ID format
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid project ID format' });
+    }
+
+    // Prepare update data
+    const updateData = {
+      'responsible office': responsibleOffice,
+      'name project': nameProject,
+      'number project': numberProject || undefined,
+      'project scope': projectScope || undefined,
+      'manager constructor': managerConstructor || undefined,
+      'manager': manager || undefined,
+      'review date': reviewDate ? new Date(reviewDate) : undefined,
+      'review team members': reviewTeamMembers
+        ? Array.isArray(reviewTeamMembers)
+          ? reviewTeamMembers
+          : [reviewTeamMembers]
+        : undefined,
+      'project members interviewed': projectMembersInterviewed
+        ? Array.isArray(projectMembersInterviewed)
+          ? projectMembersInterviewed
+          : [projectMembersInterviewed]
+        : undefined,
+      location: location || undefined,
+      sectorManager: sectorManager || undefined,
+    };
+
+    // Handle picture update
+    if (req.file) {
+      updateData.picture = `/uploads/${req.file.filename}`; // Update with new image path
+      console.log('Updated picture with new file:', updateData.picture);
+    } else if (pictureFromBody && typeof pictureFromBody === 'string') {
+      updateData.picture = pictureFromBody; // Retain existing picture path
+      console.log('Retained picture path:', pictureFromBody);
+    }
+
+    // Remove undefined values to avoid overwriting existing data
+    Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
+
+    // Update the project
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id,
-      {
-        'responsible office': responsibleOffice,
-        'name project': nameProject,
-        'number project': numberProject,
-        'project scope': projectScope,
-        'manager constructor': managerConstructor,
-        'manager': manager,
-        'review date': reviewDate,
-        'review team members': reviewTeamMembers,
-        'project members interviewed': projectMembersInterviewed
-      },
-      { new: true } // pour retourner le projet modifié
+      { $set: updateData },
+      { new: true, runValidators: true }
     );
 
     if (!updatedProject) {
       return res.status(404).json({ message: 'Project not found' });
     }
-     
+
     res.json(updatedProject);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error updating project:', error.message, error.stack);
+    res.status(400).json({ message: `Failed to update project: ${error.message}` });
   }
 });
-
 router.delete('/:id', async (req, res) => {
   console.log('Delete request for id:', req.params.id);
   try {
+    // Validate project ID format
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid project ID format' });
+    }
+
     const deletedProject = await Project.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Project deleted successfully' });
 
     if (!deletedProject) {
       return res.status(404).json({ message: 'Project not found' });
     }
-       console.log('Section with raw questions:', JSON.stringify(project.crrs[0].sections[0], null, 2));
+
+    // Optional: Log CRR sections only if they exist
+    if (deletedProject.crrs && Array.isArray(deletedProject.crrs) && deletedProject.crrs.length > 0 && deletedProject.crrs[0].sections && deletedProject.crrs[0].sections.length > 0) {
+      console.log('Section with raw questions:', JSON.stringify(deletedProject.crrs[0].sections[0], null, 2));
+    }
+
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
-    console.error('Delete error:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Delete error:', error.message, error.stack);
+    res.status(500).json({ message: `Failed to delete project: ${error.message}` });
   }
 });
 

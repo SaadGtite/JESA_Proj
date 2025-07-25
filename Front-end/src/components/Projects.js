@@ -196,19 +196,32 @@ function ProjectTable() {
   };
 
   const handleDelete = async (e, id) => {
-    e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
-          method: 'DELETE'
-        });
-        if (!res.ok) throw new Error();
+   e.stopPropagation();
+if (window.confirm('Are you sure you want to delete this project?')) {
+  try {
+    console.log('Deleting project with ID:', id); // Log the ID
+    const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({})); // Fallback for non-JSON responses
+      if (res.status === 404) {
+        alert('Project not found, but removing from UI');
         setProjects(projects.filter(p => p._id !== id));
         setFilteredProjects(filteredProjects.filter(p => p._id !== id));
-      } catch {
-        alert('Failed to delete project');
+      } else {
+        throw new Error(`Failed to delete project: ${res.status} ${res.statusText} - ${JSON.stringify(errorData)}`);
       }
+    } else {
+      setProjects(projects.filter(p => p._id !== id));
+      setFilteredProjects(filteredProjects.filter(p => p._id !== id));
+      alert('Project deleted successfully'); // Optional
     }
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    alert(`Failed to delete project: ${error.message}`);
+  }
+}
   };
 
   const handleExport = (e, id) => {
