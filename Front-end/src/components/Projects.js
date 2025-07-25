@@ -198,17 +198,13 @@ function ProjectTable() {
   };
 
   const handleDelete = async (e, id) => {
-   e.stopPropagation();
-if (window.confirm('Are you sure you want to delete this project?')) {
-  try {
-    console.log('Deleting project with ID:', id); // Log the ID
-    const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
-      method: 'DELETE'
-    });
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({})); // Fallback for non-JSON responses
-      if (res.status === 404) {
-        alert('Project not found, but removing from UI');
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) throw new Error();
         setProjects(projects.filter(p => p._id !== id));
         setFilteredProjects(filteredProjects.filter(p => p._id !== id));
         setSelectedProjectIds(selectedProjectIds.filter(selectedId => selectedId !== id));
@@ -247,6 +243,32 @@ if (window.confirm('Are you sure you want to delete this project?')) {
   const handleExport = (e, id) => {
     e.stopPropagation();
     alert(`Exporting project ID: ${id}`);
+  };
+
+  const handleBulkExport = () => {
+    if (selectedProjectIds.length === 0) {
+      alert('No projects selected');
+      return;
+    }
+    const selectedProjects = filteredProjects.filter(p => selectedProjectIds.includes(p._id));
+    const csvContent = [
+      ['Project Name', 'Description', 'Location', 'Sector', 'Review Date'],
+      ...selectedProjects.map(p => [
+        `"${p['name project']}"`,
+        `"${p['project scope']}"`,
+        p.location || 'N/A',
+        p.sectorManager || 'N/A',
+        formatDate(p['review date'])
+      ])
+    ]
+      .map(row => row.join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'selected_projects_export.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
   };
 
   const handleExportAll = () => {
@@ -354,15 +376,26 @@ if (window.confirm('Are you sure you want to delete this project?')) {
             <ExportIcon /> Export All
           </Button>
           {viewMode === 'table' && (
-            <Button
-              variant="outline-danger"
-              className="bulk-action-btn"
-              onClick={handleBulkDelete}
-              disabled={selectedProjectIds.length === 0}
-              title="Delete Selected Projects"
-            >
-              <DeleteIcon /> Delete Selected
-            </Button>
+            <>
+              <Button
+                variant="outline-danger"
+                className="bulk-action-btn"
+                onClick={handleBulkDelete}
+                disabled={selectedProjectIds.length === 0}
+                title="Delete Selected Projects"
+              >
+                <DeleteIcon /> Delete Selected
+              </Button>
+              <Button
+                variant="outline-primary"
+                className="bulk-action-btn"
+                onClick={handleBulkExport}
+                disabled={selectedProjectIds.length === 0}
+                title="Export Selected Projects"
+              >
+                <ExportIcon /> Export Selected
+              </Button>
+            </>
           )}
         </div>
       </div>
