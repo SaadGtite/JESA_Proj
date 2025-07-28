@@ -147,3 +147,14 @@ textarea.form-control {
     font-size: 0.85rem;
   }
 }
+.team-input-group {
+  display: flex;
+  align-items: center;
+}
+.team-input-group .form-control,
+.team-input-group .form-select {
+  flex: 1;
+}
+.team-input-group .btn-primary {
+  margin-left: 10px;
+}

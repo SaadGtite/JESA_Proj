@@ -262,7 +262,6 @@ router.post('/:projectId/crrs', async (req, res) => {
     res.status(500).json({ message: `Failed to create CRR: ${error.message}` });
   }
 });
-
 router.put('/:id', upload.single('picture'), async (req, res) => {
   try {
     console.log('Received body:', req.body); // Debug: Log raw body
@@ -281,13 +280,51 @@ router.put('/:id', upload.single('picture'), async (req, res) => {
       picture: pictureFromBody,
     } = req.body;
 
-    // Validate required fields with explicit trimming
+    // Validate required fields
     if (!responsibleOffice || responsibleOffice.trim() === '') {
       return res.status(400).json({ message: 'Responsible Office is required and cannot be empty' });
     }
     if (!nameProject || nameProject.trim() === '') {
       return res.status(400).json({ message: 'Project Name is required and cannot be empty' });
     }
+
+    // Parse JSON strings for team members and validate
+    let reviewTeamArray, interviewTeamArray;
+    try {
+      reviewTeamArray = reviewTeamMembers
+        ? typeof reviewTeamMembers === 'string'
+          ? JSON.parse(reviewTeamMembers)
+          : Array.isArray(reviewTeamMembers)
+          ? reviewTeamMembers
+          : [reviewTeamMembers]
+        : [];
+      interviewTeamArray = projectMembersInterviewed
+        ? typeof projectMembersInterviewed === 'string'
+          ? JSON.parse(projectMembersInterviewed)
+          : Array.isArray(projectMembersInterviewed)
+          ? projectMembersInterviewed
+          : [projectMembersInterviewed]
+        : [];
+    } catch (error) {
+      return res.status(400).json({ message: 'Invalid format for team members: must be valid JSON or array' });
+    }
+
+    // Validate non-empty team member arrays
+    if (!Array.isArray(reviewTeamArray) || reviewTeamArray.length === 0) {
+      return res.status(400).json({ message: 'At least one Review Team Member is required' });
+    }
+    if (!Array.isArray(interviewTeamArray) || interviewTeamArray.length === 0) {
+      return res.status(400).json({ message: 'At least one Interviewed Team Member is required' });
+    }
+
+    // Validate team member format (each should have name and role)
+    const validateTeamMembers = (members, fieldName) => {
+      if (!members.every(member => member && typeof member === 'object' && member.name && member.role)) {
+        throw new Error(`${fieldName} must contain objects with 'name' and 'role' properties`);
+      }
+    };
+    validateTeamMembers(reviewTeamArray, 'Review Team Members');
+    validateTeamMembers(interviewTeamArray, 'Interviewed Team Members');
 
     // Validate project ID format
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -303,16 +340,8 @@ router.put('/:id', upload.single('picture'), async (req, res) => {
       'manager constructor': managerConstructor || undefined,
       'manager': manager || undefined,
       'review date': reviewDate ? new Date(reviewDate) : undefined,
-      'review team members': reviewTeamMembers
-        ? Array.isArray(reviewTeamMembers)
-          ? reviewTeamMembers
-          : [reviewTeamMembers]
-        : undefined,
-      'project members interviewed': projectMembersInterviewed
-        ? Array.isArray(projectMembersInterviewed)
-          ? projectMembersInterviewed
-          : [projectMembersInterviewed]
-        : undefined,
+      'review team members': reviewTeamArray,
+      'project members interviewed': interviewTeamArray,
       location: location || undefined,
       sectorManager: sectorManager || undefined,
     };
@@ -346,6 +375,7 @@ router.put('/:id', upload.single('picture'), async (req, res) => {
     res.status(400).json({ message: `Failed to update project: ${error.message}` });
   }
 });
+
 router.delete('/:id', async (req, res) => {
   console.log('Delete request for id:', req.params.id);
   try {

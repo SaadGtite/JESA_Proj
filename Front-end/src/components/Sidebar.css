@@ -141,7 +141,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 30px;
+  margin-top: -250px;
   gap: 8px;
   font-weight: 500;
   cursor: pointer;
