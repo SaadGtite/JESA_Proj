@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Dropdown } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import './Projects.css';
-import projImg from '../assets/proj-img.png'; // Verify this path is correct
-import jsPDF from 'jspdf'; // Import jsPDF for PDF generation
+import projImg from '../assets/proj-img.png';
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
+import { utils, writeFile } from 'xlsx';
 
 // Icons
 const EditIcon = () => (
@@ -57,7 +59,7 @@ const FilterIcon = () => (
 );
 
 const formatDate = (dateString) => {
-  if (!dateString) return '';
+  if (!dateString) return 'N/A';
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
@@ -148,7 +150,7 @@ function ProjectTable() {
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
+  const [viewMode, setViewMode] = useState('table');
   const [filter, setFilter] = useState({ sector: '', location: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'name project', direction: 'asc' });
@@ -198,7 +200,6 @@ function ProjectTable() {
       return 0;
     });
     setFilteredProjects(result);
-    // Retain selections for projects still in filtered list
     setSelectedProjectIds(prev => prev.filter(id => result.some(p => p._id === id)));
   }, [filter, projects, searchTerm, sortConfig]);
 
@@ -255,19 +256,16 @@ function ProjectTable() {
     }
   };
 
-  const handleExport = async (e, id) => {
+  const handleExportPDF = async (e, id) => {
     e.stopPropagation();
     try {
-      // Fetch project details including CRR data
       const res = await fetch(`http://localhost:5000/api/projects/${id}`);
       if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
       const project = await res.json();
 
-      // Initialize jsPDF
       const doc = new jsPDF();
       let yOffset = 20;
 
-      // Add Project Information
       doc.setFontSize(16);
       doc.text(`Project Report: ${project['name project'] || 'N/A'}`, 20, yOffset);
       yOffset += 10;
@@ -290,7 +288,6 @@ function ProjectTable() {
       doc.text(`Sector Manager: ${project.sectorManager || 'N/A'}`, 20, yOffset);
       yOffset += 10;
 
-      // Add Review Team Members
       doc.text('Review Team Members:', 20, yOffset);
       yOffset += 7;
       if (project['review team members']?.length > 0) {
@@ -304,7 +301,6 @@ function ProjectTable() {
       }
       yOffset += 7;
 
-      // Add Project Members Interviewed
       doc.text('Project Members Interviewed:', 20, yOffset);
       yOffset += 7;
       if (project['project members interviewed']?.length > 0) {
@@ -318,7 +314,6 @@ function ProjectTable() {
       }
       yOffset += 10;
 
-      // Add CRR Assessments
       if (project.crrs?.length > 0) {
         project.crrs.forEach((crr, crrIndex) => {
           doc.setFontSize(14);
@@ -328,47 +323,50 @@ function ProjectTable() {
           doc.text(`Created At: ${formatDate(crr.createdAt)}`, 20, yOffset);
           yOffset += 7;
 
-          crr.sections.forEach((section, sectionIndex) => {
-            doc.setFontSize(13);
-            doc.text(`Section ${sectionIndex + 1}: ${section.title || `Section ${sectionIndex + 1}`}`, 20, yOffset);
-            yOffset += 7;
-
-            if (section.questions?.length > 0) {
-              section.questions.forEach((q, qIndex) => {
-                // Check if we need a new page
-                if (yOffset > 250) {
-                  doc.addPage();
-                  yOffset = 20;
-                }
-
-                doc.setFontSize(11);
-                doc.text(`Question ${qIndex + 1}: ${q.text || 'No question text'}`, 25, yOffset);
-                yOffset += 6;
-                doc.text(`Score: ${q.isNA ? 'N/A' : q.score !== null ? q.score : 'Not scored'}`, 30, yOffset);
-                yOffset += 6;
-                doc.text(`Showstopper: ${q.showstopper ? 'Yes' : 'No'}`, 30, yOffset);
-                yOffset += 6;
-                doc.text(`Comments: ${q.comments || 'None'}`, 30, yOffset);
-                yOffset += 6;
-                doc.text(`Actions: ${q.actions || 'None'}`, 30, yOffset);
-                yOffset += 6;
-                doc.text(`Reference Document: ${q.referenceDocument || 'None'}`, 30, yOffset);
-                yOffset += 6;
-                doc.text(`Deliverable: ${q.deliverable || 'None'}`, 30, yOffset);
-                yOffset += 10;
-              });
-            } else {
-              doc.text('No questions available', 25, yOffset);
+          if (crr.sections?.length > 0) {
+            crr.sections.forEach((section, sectionIndex) => {
+              doc.setFontSize(13);
+              doc.text(`Section ${sectionIndex + 1}: ${section.title || `Section ${sectionIndex + 1}`}`, 20, yOffset);
               yOffset += 7;
-            }
-          });
+
+              if (section.questions?.length > 0) {
+                section.questions.forEach((q, qIndex) => {
+                  if (yOffset > 250) {
+                    doc.addPage();
+                    yOffset = 20;
+                  }
+
+                  doc.setFontSize(11);
+                  doc.text(`Question ${qIndex + 1}: ${q.text || 'No question text'}`, 25, yOffset);
+                  yOffset += 6;
+                  doc.text(`Score: ${q.isNA ? 'N/A' : q.score !== null ? q.score : 'Not scored'}`, 30, yOffset);
+                  yOffset += 6;
+                  doc.text(`Showstopper: ${q.showstopper ? 'Yes' : 'No'}`, 30, yOffset);
+                  yOffset += 6;
+                  doc.text(`Comments: ${q.comments || 'None'}`, 30, yOffset);
+                  yOffset += 6;
+                  doc.text(`Actions: ${q.actions || 'None'}`, 30, yOffset);
+                  yOffset += 6;
+                  doc.text(`Reference Document: ${q.referenceDocument || 'None'}`, 30, yOffset);
+                  yOffset += 6;
+                  doc.text(`Deliverable: ${q.deliverable || 'None'}`, 30, yOffset);
+                  yOffset += 10;
+                });
+              } else {
+                doc.text('No questions available', 25, yOffset);
+                yOffset += 7;
+              }
+            });
+          } else {
+            doc.text('No sections available', 25, yOffset);
+            yOffset += 7;
+          }
         });
       } else {
         doc.text('No CRR assessments available', 20, yOffset);
         yOffset += 7;
       }
 
-      // Save the PDF
       doc.save(`Project_${project['name project'] || 'Report'}_${id}.pdf`);
     } catch (error) {
       console.error('Failed to export project to PDF:', error);
@@ -376,51 +374,288 @@ function ProjectTable() {
     }
   };
 
-  const handleBulkExport = () => {
+  const handleExportExcel = async (e, id) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`http://localhost:5000/api/projects/${id}`);
+      if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
+      const project = await res.json();
+
+      const workbook = utils.book_new();
+      const projectData = [];
+
+      // Project Info Section (Horizontal Layout with Frame)
+      projectData.push(['Project Information', '', '', '', '', '', '', '', '']);
+      projectData.push([
+        'Project Name',
+        'Project Number',
+        'Responsible Office',
+        'Project Scope',
+        'Location',
+        'Manager',
+        'Constructor Manager',
+        'Review Date',
+        'Sector Manager'
+      ]);
+      projectData.push([
+        project['name project'] || 'N/A',
+        project['number project'] || 'N/A',
+        project['responsible office'] || 'N/A',
+        project['project scope'] || 'N/A',
+        project.location || 'N/A',
+        project.manager || 'N/A',
+        project['manager constructor'] || 'N/A',
+        formatDate(project['review date']),
+        project.sectorManager || 'N/A'
+      ]);
+      projectData.push(['', '', '', '', '', '', '', '', '']);
+
+      // Review Team Members
+      projectData.push(['Review Team Members']);
+      if (project['review team members']?.length > 0) {
+        project['review team members'].forEach(member => {
+          projectData.push(['', member]);
+        });
+      } else {
+        projectData.push(['', 'No team members listed']);
+      }
+      projectData.push(['']);
+
+      // Project Members Interviewed
+      projectData.push(['Project Members Interviewed']);
+      if (project['project members interviewed']?.length > 0) {
+        project['project members interviewed'].forEach(member => {
+          projectData.push(['', member]);
+        });
+      } else {
+        projectData.push(['', 'No members interviewed']);
+      }
+      projectData.push(['']);
+
+      // CRR Assessments
+      if (project.crrs?.length > 0) {
+        project.crrs.forEach((crr, crrIndex) => {
+          console.log(`Processing CRR ${crrIndex + 1}:`, crr);
+          projectData.push([`CRR Assessment ${crrIndex + 1}: ${crr.title || 'N/A'}`]);
+          projectData.push(['', 'Created At', formatDate(crr.createdAt || '')]);
+          if (Array.isArray(crr.sections) && crr.sections.length > 0) {
+            crr.sections.forEach((section, sectionIndex) => {
+              console.log(`Processing Section ${sectionIndex + 1} in CRR ${crrIndex + 1}:`, section);
+              projectData.push(['']);
+              projectData.push([`Section ${sectionIndex + 1}: ${section.title || `Section ${sectionIndex + 1}`}`]);
+              if (Array.isArray(section.questions) && section.questions.length > 0) {
+                projectData.push([
+                  '',
+                  'Question Number',
+                  'Question Text',
+                  'Score',
+                  'Showstopper',
+                  'Comments',
+                  'Actions',
+                  'Reference Document',
+                  'Deliverable'
+                ]);
+                section.questions.forEach((q, qIndex) => {
+                  console.log(`Processing Question ${qIndex + 1} in Section ${sectionIndex + 1}:`, q);
+                  projectData.push([
+                    '',
+                    `Question ${qIndex + 1}`,
+                    q.text || 'No question text',
+                    q.isNA === true ? 'N/A' : (q.score !== null && q.score !== undefined ? q.score : 'Not scored'),
+                    q.showstopper === true ? 'Yes' : q.showstopper === false ? 'No' : 'N/A',
+                    q.comments || 'None',
+                    q.actions || 'None',
+                    q.referenceDocument || 'None',
+                    q.deliverable || 'None'
+                  ]);
+                });
+              } else {
+                projectData.push(['', 'No questions available']);
+                console.log(`No questions or invalid questions array in Section ${sectionIndex + 1} of CRR ${crrIndex + 1}`);
+              }
+            });
+          } else {
+            projectData.push(['', 'No sections or invalid sections array']);
+            console.log(`No sections or invalid sections array in CRR ${crrIndex + 1}`);
+          }
+          projectData.push(['']);
+        });
+      } else {
+        projectData.push(['No CRR assessments available']);
+        console.log('No CRR assessments found for project');
+      }
+
+      const worksheet = utils.aoa_to_sheet(projectData);
+
+      // Apply styling: colored title cells and borders for project info
+      worksheet['!cols'] = [
+        { wch: 20 }, // Spacer column
+        { wch: 30 }, // Project Name, Question Number
+        { wch: 50 }, // Project Scope, Question Text
+        { wch: 15 }, // Score
+        { wch: 15 }, // Showstopper
+        { wch: 30 }, // Comments
+        { wch: 30 }, // Actions
+        { wch: 30 }, // Reference Document
+        { wch: 30 }  // Deliverable
+      ];
+
+      // Style for headers (colored title cells)
+      const headerStyle = {
+        fill: { type: 'pattern', pattern: 'solid', fgColor: { rgb: 'ADD8E6' } }, // Light blue background
+        font: { bold: true },
+        alignment: { horizontal: 'left', vertical: 'center' }
+      };
+
+      // Style for project info cells
+      const projectInfoStyle = {
+        border: {
+          top: { style: 'thin', color: { rgb: '000000' } },
+          bottom: { style: 'thin', color: { rgb: '000000' } },
+          left: { style: 'thin', color: { rgb: '000000' } },
+          right: { style: 'thin', color: { rgb: '000000' } }
+        },
+        alignment: { horizontal: 'left', vertical: 'center', wrapText: true }
+      };
+
+      // Apply styles to cells
+      Object.keys(worksheet).forEach(cell => {
+        if (cell[0] === '!') return; // Skip metadata
+        const rowIndex = parseInt(cell.match(/\d+/)[0], 10) - 1;
+        const col = cell.match(/[A-Z]+/)[0];
+        const cellValue = worksheet[cell].v;
+
+        // Log the cell value for debugging
+        console.log(`Processing cell ${cell}:`, { value: cellValue, type: typeof cellValue });
+
+        // Project Information header (row 1)
+        if (rowIndex === 0 && col === 'A') {
+          worksheet[cell].s = headerStyle;
+        }
+
+        // Project Info labels and data (rows 2-3, columns B-I)
+        if (rowIndex >= 1 && rowIndex <= 2 && col >= 'B' && col <= 'I') {
+          worksheet[cell].s = projectInfoStyle;
+          if (rowIndex === 1) {
+            worksheet[cell].s = { ...projectInfoStyle, ...headerStyle };
+          }
+        }
+
+        // Other headers (Review Team Members, Project Members Interviewed, CRR Assessments, Sections)
+        if (
+          rowIndex > 3 && col === 'A' &&
+          typeof cellValue === 'string' &&
+          (
+            cellValue.startsWith('Review Team Members') ||
+            cellValue.startsWith('Project Members Interviewed') ||
+            cellValue.startsWith('CRR Assessment') ||
+            cellValue.startsWith('Section ')
+          ) ||
+          (typeof cellValue === 'string' && cellValue === 'Question Number' && col === 'B')
+        ) {
+          worksheet[cell].s = headerStyle;
+        }
+      });
+
+      utils.book_append_sheet(workbook, worksheet, 'Project Report');
+      writeFile(workbook, `Project_${project['name project'] || 'Report'}_${id}.xlsx`);
+    } catch (error) {
+      console.error('Failed to export project to Excel:', error);
+      alert(`Failed to export project to Excel. Error: ${error.message}`);
+    }
+  };
+
+  const handleExportAllExcel = () => {
+    const projectData = [
+      ['Project Name', 'Project Number', 'Responsible Office', 'Project Scope', 'Location', 'Manager', 'Constructor Manager', 'Review Date', 'Sector Manager']
+    ];
+
+    filteredProjects.forEach(project => {
+      projectData.push([
+        project['name project'] || 'N/A',
+        project['number project'] || 'N/A',
+        project['responsible office'] || 'N/A',
+        project['project scope'] || 'N/A',
+        project.location || 'N/A',
+        project.manager || 'N/A',
+        project['manager constructor'] || 'N/A',
+        formatDate(project['review date']),
+        project.sectorManager || 'N/A'
+      ]);
+    });
+
+    const worksheet = utils.aoa_to_sheet(projectData);
+    worksheet['!cols'] = [
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 30 },
+      { wch: 50 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 }
+    ];
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'All Projects');
+    writeFile(workbook, 'all_projects.xlsx');
+  };
+
+  const handleBulkExportExcel = () => {
     if (selectedProjectIds.length === 0) {
       alert('No projects selected');
       return;
     }
     const selectedProjects = filteredProjects.filter(p => selectedProjectIds.includes(p._id));
-    const csvContent = [
-      ['Project Name', 'Description', 'Location', 'Sector', 'Review Date'],
-      ...selectedProjects.map(p => [
-        `"${p['name project']}"`,
-        `"${p['project scope']}"`,
-        p.location || 'N/A',
-        p.sectorManager || 'N/A',
-        formatDate(p['review date'])
-      ])
-    ]
-      .map(row => row.join(','))
-      .join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'selected_projects_export.csv';
-    link.click();
-    URL.revokeObjectURL(link.href);
+    const projectData = [
+      ['Project Name', 'Project Number', 'Responsible Office', 'Project Scope', 'Location', 'Manager', 'Constructor Manager', 'Review Date', 'Sector Manager']
+    ];
+
+    selectedProjects.forEach(project => {
+      projectData.push([
+        project['name project'] || 'N/A',
+        project['number project'] || 'N/A',
+        project['responsible office'] || 'N/A',
+        project['project scope'] || 'N/A',
+        project.location || 'N/A',
+        project.manager || 'N/A',
+        project['manager constructor'] || 'N/A',
+        formatDate(project['review date']),
+        project.sectorManager || 'N/A'
+      ]);
+    });
+
+    const worksheet = utils.aoa_to_sheet(projectData);
+    worksheet['!cols'] = [
+      { wch: 30 },
+      { wch: 20 },
+      { wch: 30 },
+      { wch: 50 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 },
+      { wch: 20 }
+    ];
+    const workbook = utils.book_new();
+    utils.book_append_sheet(workbook, worksheet, 'Selected Projects');
+    writeFile(workbook, 'selected_projects.xlsx');
   };
 
-  const handleExportAll = () => {
-    const csvContent = [
-      ['Project Name', 'Description', 'Location', 'Sector', 'Review Date'],
-      ...filteredProjects.map(p => [
-        `"${p['name project']}"`,
-        `"${p['project scope']}"`,
-        p.location || 'N/A',
-        p.sectorManager || 'N/A',
-        formatDate(p['review date'])
-      ])
-    ]
-      .map(row => row.join(','))
-      .join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'projects_export.csv';
-    link.click();
-    URL.revokeObjectURL(link.href);
+  const handleBulkExportPDF = () => {
+    if (selectedProjectIds.length === 0) {
+      alert('No projects selected');
+      return;
+    }
+    selectedProjectIds.forEach(id => {
+      handleExportPDF(new Event('click'), id);
+    });
+  };
+
+  const handleExportAllPDF = () => {
+    filteredProjects.forEach(project => {
+      handleExportPDF(new Event('click'), project._id);
+    });
   };
 
   const handleSelectProject = (e, id) => {
@@ -431,6 +666,7 @@ function ProjectTable() {
   };
 
   const handleSelectAll = (e) => {
+    e.stopPropagation();
     if (e.target.checked) {
       setSelectedProjectIds(filteredProjects.map(p => p._id));
     } else {
@@ -473,7 +709,7 @@ function ProjectTable() {
             <Dropdown.Toggle variant="outline-primary" className="action-btn filter-btn" title="Filter Projects">
               <FilterIcon />
             </Dropdown.Toggle>
-            <Dropdown.Menu align="end" className="filter-dropdown">
+            <Dropdown.Menu align="end" className="filter-dropdown" style={{ zIndex: 1000 }}>
               <Dropdown.Header>Filter by Sector</Dropdown.Header>
               <Dropdown.Item onClick={() => handleFilterChange('sector', '')}>
                 All Sectors
@@ -498,14 +734,19 @@ function ProjectTable() {
           <Button variant="outline-primary" onClick={toggleViewMode}>
             {viewMode === 'table' ? 'Switch to Card View' : 'Switch to Table View'}
           </Button>
-          <Button
-            variant="outline-primary"
-            className="export-all-btn"
-            onClick={handleExportAll}
-            title="Export All Projects"
-          >
-            <ExportIcon /> Export All
-          </Button>
+          <Dropdown onClick={(e) => e.stopPropagation()}>
+            <Dropdown.Toggle variant="outline-primary" className="export-all-btn" title="Export All Projects">
+              <ExportIcon /> Export All
+            </Dropdown.Toggle>
+            <Dropdown.Menu align="end" style={{ zIndex: 1000 }}>
+              <Dropdown.Item onClick={handleExportAllExcel}>
+                Export All to Excel
+              </Dropdown.Item>
+              <Dropdown.Item onClick={handleExportAllPDF}>
+                Export All to PDF
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
           {viewMode === 'table' && (
             <>
               <Button
@@ -517,15 +758,24 @@ function ProjectTable() {
               >
                 <DeleteIcon /> Delete Selected
               </Button>
-              <Button
-                variant="outline-primary"
-                className="bulk-action-btn"
-                onClick={handleBulkExport}
-                disabled={selectedProjectIds.length === 0}
-                title="Export Selected Projects"
-              >
-                <ExportIcon /> Export Selected
-              </Button>
+              <Dropdown onClick={(e) => e.stopPropagation()}>
+                <Dropdown.Toggle
+                  variant="outline-primary"
+                  className="bulk-action-btn"
+                  disabled={selectedProjectIds.length === 0}
+                  title="Export Selected Projects"
+                >
+                  <ExportIcon /> Export Selected
+                </Dropdown.Toggle>
+                <Dropdown.Menu align="end" style={{ zIndex: 1000 }}>
+                  <Dropdown.Item onClick={handleBulkExportExcel}>
+                    Export Selected to Excel
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={handleBulkExportPDF}>
+                    Export Selected to PDF
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             </>
           )}
         </div>
@@ -579,7 +829,7 @@ function ProjectTable() {
                       <input
                         type="checkbox"
                         checked={selectedProjectIds.includes(project._id)}
-                        onChange={(e) => handleSelectProject(e, project._id)} // Fixed typo: project._riottId to project._id
+                        onChange={(e) => handleSelectProject(e, project._id)}
                       />
                     </td>
                     <td>{project['name project']}</td>
@@ -607,14 +857,19 @@ function ProjectTable() {
                         >
                           <DeleteIcon />
                         </Button>
-                        <Button
-                          variant="link"
-                          className="action-btn"
-                          onClick={(e) => handleExport(e, project._id)}
-                          title="Export Project"
-                        >
-                          <ExportIcon />
-                        </Button>
+                        <Dropdown onClick={(e) => e.stopPropagation()}>
+                          <Dropdown.Toggle variant="link" className="action-btn" title="Export Project">
+                            <ExportIcon />
+                          </Dropdown.Toggle>
+                          <Dropdown.Menu align="end" style={{ zIndex: 1000 }}>
+                            <Dropdown.Item onClick={(e) => handleExportPDF(e, project._id)}>
+                              Export to PDF
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={(e) => handleExportExcel(e, project._id)}>
+                              Export to Excel
+                            </Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
                       </div>
                       <ProgressBarSegments
                         sectionsCompleted={crrCompletions}
@@ -688,15 +943,18 @@ function ProjectTable() {
                         <Dropdown.Toggle variant="link" className="action-btn" style={{ padding: 0 }}>
                           <MenuIcon />
                         </Dropdown.Toggle>
-                        <Dropdown.Menu align="end">
+                        <Dropdown.Menu align="end" style={{ zIndex: 1000 }}>
                           <Dropdown.Item as={Link} to={`/projinfo/${project._id}`}>
                             <EditIcon style={{ marginRight: '8px' }} /> Edit
                           </Dropdown.Item>
                           <Dropdown.Item onClick={(e) => handleDelete(e, project._id)}>
                             <DeleteIcon style={{ marginRight: '8px' }} /> Delete
                           </Dropdown.Item>
-                          <Dropdown.Item onClick={(e) => handleExport(e, project._id)}>
-                            <ExportIcon style={{ marginRight: '8px' }} /> Export
+                          <Dropdown.Item onClick={(e) => handleExportPDF(e, project._id)}>
+                            <ExportIcon style={{ marginRight: '8px' }} /> Export to PDF
+                          </Dropdown.Item>
+                          <Dropdown.Item onClick={(e) => handleExportExcel(e, project._id)}>
+                            <ExportIcon style={{ marginRight: '8px' }} /> Export to Excel
                           </Dropdown.Item>
                           {project.crrs && project.crrs.length > 0 && (
                             <Dropdown.Item as={Link} to={`/${project._id}/crrs/${project.crrs[0]._id}`}>
@@ -713,7 +971,7 @@ function ProjectTable() {
           </div>
         </div>
       )}
-      <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans project-modal">
+<Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans project-modal">
         <Modal.Header className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg">
           <Modal.Title className="text-2xl font-bold text-gray-800">
             Project Details
@@ -727,104 +985,69 @@ function ProjectTable() {
         </Modal.Header>
         <Modal.Body className="bg-white/10 backdrop-blur-lg border-x border-white/20 p-6">
           {selectedProject ? (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Project Name:</strong> {selectedProject['name project']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Project Number:</strong> {selectedProject['number project']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Project Scope:</strong> {selectedProject['project scope']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Location:</strong> {selectedProject.location || 'N/A'}
-                  </p>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '32px', alignItems: 'stretch', flexWrap: 'nowrap', height: '100%' }}>
+              {/* Left column: Project Info and Image */}
+              <div style={{ flex: 1, minWidth: 260, maxWidth: 400, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: 20, height: 'auto', display: 'flex', flexDirection: 'column' }}>
+                <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: '#3b3b3b', marginBottom: 12 }}>Project Information</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span><strong>Name:</strong> {selectedProject['name project']}</span>
+                  <span><strong>Number:</strong> {selectedProject['number project']}</span>
+                  <span><strong>Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}</span>
+                  <span><strong>Scope:</strong> {selectedProject['project scope']}</span>
+                  <span><strong>Location:</strong> {selectedProject.location || 'N/A'}</span>
+                  <span><strong>Manager:</strong> {selectedProject['manager']}</span>
+                  <span><strong>Manager Constructor:</strong> {selectedProject['manager constructor']}</span>
+                  <span><strong>Review Date:</strong> {formatDate(selectedProject['review date'])}</span>
+                  <span><strong>Sector Manager:</strong> {selectedProject.sectorManager || 'N/A'}</span>
                 </div>
+              </div>
+              {/* Right column: Team, Interviewed, CRR */}
+              <div style={{ flex: 2, minWidth: 260, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: 20, display: 'flex', flexDirection: 'column', gap: 18, height: 'auto', justifyContent: 'stretch' }}>
                 <div>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Manager:</strong> {selectedProject['manager']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Manager Constructor:</strong> {selectedProject['manager constructor']}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Review Date:</strong> {formatDate(selectedProject['review date'])}
-                  </p>
-                  <p className="text-gray-800">
-                    <strong className="font-semibold">Sector Manager:</strong> {selectedProject.sectorManager || 'N/A'}
-                  </p>
-                  {selectedProject.picture && (
-                    <p className="text-gray-800">
-                      <strong className="font-semibold">Project Image:</strong>{' '}
-                      <img
-                        src={`http://localhost:5000${selectedProject.picture}`}
-                        alt={`${selectedProject['name project']} image`}
-                        style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'contain' }}
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
-                    </p>
+                  <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#3b3b3b', marginBottom: 8 }}>Review Team Members</h3>
+                  {selectedProject['review team members']?.length > 0 ? (
+                    <ul style={{ paddingLeft: 18, margin: 0, color: '#444', fontSize: '1rem' }}>
+                      {selectedProject['review team members'].map((member, index) => (
+                        <li key={index}>{member}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span style={{ color: '#888', fontStyle: 'italic' }}>No team members listed</span>
                   )}
                 </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Review Team Members</h3>
-                {selectedProject['review team members']?.length > 0 ? (
-                  <ul className="list-disc pl-5 text-gray-700">
-                    {selectedProject['review team members'].map((member, index) => (
-                      <li key={index}>{member}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-600 italic">No team members listed</p>
-                )}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Project Members Interviewed</h3>
-                {selectedProject['project members interviewed']?.length > 0 ? (
-                  <ul className="list-disc pl-5 text-gray-700">
-                    {selectedProject['project members interviewed'].map((member, index) => (
-                      <li key={index}>{member}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-600 italic">No members interviewed</p>
-                )}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">CRR Assessments</h3>
-                {selectedProject.crrs?.length > 0 ? (
-                  <div className="space-y-4">
-                    {selectedProject.crrs.map((crr, index) => (
-                      <div key={index} className="border-l-4 border-blue-500 pl-4">
-                        <p className="text-gray-800">
-                          <strong className="font-semibold">CRR Title:</strong> {crr.title}
-                        </p>
-                        <p className="text-gray-800">
-                          <strong className="font-semibold">Created At:</strong> {formatDate(crr.createdAt)}
-                        </p>
-                        <p className="text-gray-800">
-                          <strong className="font-semibold">Sections:</strong> {crr.sections.length}
-                        </p>
-                        <p className="text-gray-800">
-                          <strong className="font-semibold">All Sections Completed:</strong>{' '}
-                          {crr.sections.every(section => section.allQuestionsCompleted) ? (
-                            <span className="text-green-600">Yes</span>
+                <div>
+                  <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#3b3b3b', marginBottom: 8 }}>Project Members Interviewed</h3>
+                  {selectedProject['project members interviewed']?.length > 0 ? (
+                    <ul style={{ paddingLeft: 18, margin: 0, color: '#444', fontSize: '1rem' }}>
+                      {selectedProject['project members interviewed'].map((member, index) => (
+                        <li key={index}>{member}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span style={{ color: '#888', fontStyle: 'italic' }}>No members interviewed</span>
+                  )}
+                </div>
+                <div>
+                  <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#3b3b3b', marginBottom: 8 }}>CRR Assessments</h3>
+                  {selectedProject.crrs?.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {selectedProject.crrs.map((crr, index) => (
+                        <div key={index} style={{ borderLeft: '4px solid #3b82f6', background: '#eef6fd', borderRadius: 6, padding: '8px 14px', marginBottom: 4 }}>
+                          <span style={{ color: '#222', fontWeight: 600 }}>CRR Title:</span> {crr.title}<br />
+                          <span style={{ color: '#222', fontWeight: 600 }}>Created At:</span> {formatDate(crr.createdAt)}<br />
+                          <span style={{ color: '#222', fontWeight: 600 }}>Sections:</span> {crr.sections.length}<br />
+                          <span style={{ color: '#222', fontWeight: 600 }}>All Sections Completed:</span> {crr.sections.every(section => section.allQuestionsCompleted) ? (
+                            <span style={{ color: '#22c55e', fontWeight: 600 }}>Yes</span>
                           ) : (
-                            <span className="text-red-600">No</span>
+                            <span style={{ color: '#ef4444', fontWeight: 600 }}>No</span>
                           )}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-600 italic">No CRR assessments available</p>
-                )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span style={{ color: '#888', fontStyle: 'italic' }}>No CRR assessments available</span>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
