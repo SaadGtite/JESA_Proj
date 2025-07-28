@@ -972,43 +972,78 @@ function ProjectTable() {
         </div>
       )}
 <Modal show={showModal} onHide={handleCloseModal} size="lg" centered className="font-sans project-modal">
-        <Modal.Header className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg">
-          <Modal.Title className="text-2xl font-bold text-gray-800">
-            Project Details
-          </Modal.Title>
-          <button
-            type="button"
-            className="btn-close bg-white/20 hover:bg-white/30 rounded-full"
-            onClick={handleCloseModal}
-            aria-label="Close"
-          ></button>
-        </Modal.Header>
-        <Modal.Body className="bg-white/10 backdrop-blur-lg border-x border-white/20 p-6">
-          {selectedProject ? (
-            <div style={{ display: 'flex', flexDirection: 'row', gap: '32px', alignItems: 'stretch', flexWrap: 'nowrap', height: '100%' }}>
-              {/* Left column: Project Info and Image */}
-              <div style={{ flex: 1, minWidth: 260, maxWidth: 400, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: 20, height: 'auto', display: 'flex', flexDirection: 'column' }}>
-                <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: '#3b3b3b', marginBottom: 12 }}>Project Information</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <span><strong>Name:</strong> {selectedProject['name project']}</span>
-                  <span><strong>Number:</strong> {selectedProject['number project']}</span>
-                  <span><strong>Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}</span>
-                  <span><strong>Scope:</strong> {selectedProject['project scope']}</span>
-                  <span><strong>Location:</strong> {selectedProject.location || 'N/A'}</span>
-                  <span><strong>Manager:</strong> {selectedProject['manager']}</span>
-                  <span><strong>Manager Constructor:</strong> {selectedProject['manager constructor']}</span>
-                  <span><strong>Review Date:</strong> {formatDate(selectedProject['review date'])}</span>
-                  <span><strong>Sector Manager:</strong> {selectedProject.sectorManager || 'N/A'}</span>
-                </div>
-              </div>
-              {/* Right column: Team, Interviewed, CRR */}
-              <div style={{ flex: 2, minWidth: 260, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: 20, display: 'flex', flexDirection: 'column', gap: 18, height: 'auto', justifyContent: 'stretch' }}>
+  <Modal.Header className="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg">
+    <Modal.Title className="text-2xl font-bold text-gray-800">
+      Project Details
+    </Modal.Title>
+    <button
+      type="button"
+      className="btn-close bg-white/20 hover:bg-white/30 rounded-full"
+      onClick={handleCloseModal}
+      aria-label="Close"
+    ></button>
+  </Modal.Header>
+  <Modal.Body className="bg-white/10 backdrop-blur-lg border-x border-white/20 p-6">
+    {selectedProject ? (
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '32px', alignItems: 'stretch', flexWrap: 'nowrap', height: '100%' }}>
+        {/* Left column: Project Info and Image */}
+        <div style={{ flex: 1, minWidth: 260, maxWidth: 400, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: 20, height: 'auto', display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ fontWeight: 700, fontSize: '1.2rem', color: '#3b3b3b', marginBottom: 12 }}>Project Information</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <span><strong>Name:</strong> {selectedProject['name project']}</span>
+            <span><strong>Number:</strong> {selectedProject['number project']}</span>
+            <span><strong>Responsible Office:</strong> {selectedProject['responsible office'] || 'N/A'}</span>
+            <span><strong>Scope:</strong> {selectedProject['project scope']}</span>
+            <span><strong>Location:</strong> {selectedProject.location || 'N/A'}</span>
+            <span><strong>Manager:</strong> {selectedProject['manager']}</span>
+            <span><strong>Manager Constructor:</strong> {selectedProject['manager constructor']}</span>
+            <span><strong>Review Date:</strong> {formatDate(selectedProject['review date'])}</span>
+            <span><strong>Sector Manager:</strong> {selectedProject.sectorManager || 'N/A'}</span>
+          </div>
+        </div>
+        {/* Right column: Team, Interviewed, CRR */}
+        <div style={{ flex: 2, minWidth: 260, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: 20, display: 'flex', flexDirection: 'column', gap: 18, height: 'auto', justifyContent: 'stretch' }}>
+          {/* Helper function to parse team data */}
+          {(() => {
+            const parseTeamData = (data) => {
+              if (!data) return [];
+              // Case 1: Array of objects (new format)
+              if (Array.isArray(data) && data.every(item => item && typeof item === 'object' && 'name' in item && 'role' in item)) {
+                return data;
+              }
+              // Case 2: JSON string (new format stored as string)
+              try {
+                const parsed = JSON.parse(data);
+                if (Array.isArray(parsed) && parsed.every(item => item && typeof item === 'object' && 'name' in item && 'role' in item)) {
+                  return parsed;
+                }
+              } catch (e) {
+                // Not a valid JSON string, try legacy format
+              }
+              // Case 3: Legacy string format (e.g., "John, Jane" or "John:PM, Jane:SM")
+              if (typeof data === 'string') {
+                return data.split(',').map(item => {
+                  const [name, role] = item.split(':').map(str => str.trim());
+                  return { name, role: role || 'Other' };
+                }).filter(item => item.name);
+              }
+              // Case 4: Single string or unexpected format
+              return typeof data === 'string' && data.trim() ? [{ name: data.trim(), role: 'Other' }] : [];
+            };
+
+            const reviewTeam = parseTeamData(selectedProject['review team members']);
+            const interviewTeam = parseTeamData(selectedProject['project members interviewed']);
+
+            return (
+              <>
                 <div>
                   <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#3b3b3b', marginBottom: 8 }}>Review Team Members</h3>
-                  {selectedProject['review team members']?.length > 0 ? (
+                  {reviewTeam.length > 0 ? (
                     <ul style={{ paddingLeft: 18, margin: 0, color: '#444', fontSize: '1rem' }}>
-                      {selectedProject['review team members'].map((member, index) => (
-                        <li key={index}>{member}</li>
+                      {reviewTeam.map((member, index) => (
+                        <li key={index}>
+                          {member.name} <span style={{ color: '#3b82f6', fontWeight: 500 }}>({member.role})</span>
+                        </li>
                       ))}
                     </ul>
                   ) : (
@@ -1017,10 +1052,12 @@ function ProjectTable() {
                 </div>
                 <div>
                   <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: '#3b3b3b', marginBottom: 8 }}>Project Members Interviewed</h3>
-                  {selectedProject['project members interviewed']?.length > 0 ? (
+                  {interviewTeam.length > 0 ? (
                     <ul style={{ paddingLeft: 18, margin: 0, color: '#444', fontSize: '1rem' }}>
-                      {selectedProject['project members interviewed'].map((member, index) => (
-                        <li key={index}>{member}</li>
+                      {interviewTeam.map((member, index) => (
+                        <li key={index}>
+                          {member.name} <span style={{ color: '#3b82f6', fontWeight: 500 }}>({member.role})</span>
+                        </li>
                       ))}
                     </ul>
                   ) : (
@@ -1048,22 +1085,25 @@ function ProjectTable() {
                     <span style={{ color: '#888', fontStyle: 'italic' }}>No CRR assessments available</span>
                   )}
                 </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-gray-600 italic text-center">No project selected</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer className="bg-white/10 backdrop-blur-lg border border-white/20">
-          <Button
-            variant="secondary"
-            onClick={handleCloseModal}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors"
-          >
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+    ) : (
+      <p className="text-gray-600 italic text-center">No project selected</p>
+    )}
+  </Modal.Body>
+  <Modal.Footer className="bg-white/10 backdrop-blur-lg border border-white/20">
+    <Button
+      variant="secondary"
+      onClick={handleCloseModal}
+      className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors"
+    >
+      Close
+    </Button>
+  </Modal.Footer>
+</Modal>
     </div>
   );
 }
