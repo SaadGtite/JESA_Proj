@@ -1011,13 +1011,16 @@ function ProjectTable() {
               if (Array.isArray(data)) {
                 // Array of objects or strings
                 if (data.every(item => item && typeof item === 'object' && 'name' in item && 'role' in item)) {
-                  return data;
+                  return data.map(item => ({
+                    name: item.name,
+                    role: item.role === 'Other' ? '' : item.role
+                  }));
                 }
                 // Array of strings (legacy)
                 return data.map(item => {
                   if (typeof item === 'string') {
                     const [name, role] = item.split(':').map(str => str.trim());
-                    return { name, role: role || 'Other' };
+                    return { name, role: role === 'Other' ? '' : role };
                   }
                   return item;
                 }).filter(item => item.name);
@@ -1028,10 +1031,12 @@ function ProjectTable() {
                   const parsed = JSON.parse(data);
                   if (Array.isArray(parsed)) {
                     return parsed.map(item => {
-                      if (typeof item === 'object' && 'name' in item && 'role' in item) return item;
+                      if (typeof item === 'object' && 'name' in item && 'role' in item) {
+                        return { name: item.name, role: item.role === 'Other' ? '' : item.role };
+                      }
                       if (typeof item === 'string') {
                         const [name, role] = item.split(':').map(str => str.trim());
-                        return { name, role: role || 'Other' };
+                        return { name, role: role === 'Other' ? '' : role };
                       }
                       return null;
                     }).filter(item => item && item.name);
@@ -1042,7 +1047,7 @@ function ProjectTable() {
                 // Legacy string format
                 return data.split(',').map(item => {
                   const [name, role] = item.split(':').map(str => str.trim());
-                  return { name, role: role || 'Other' };
+                  return { name, role: role === 'Other' ? '' : role };
                 }).filter(item => item.name);
               }
               return [];
@@ -1059,7 +1064,8 @@ function ProjectTable() {
                     <ul style={{ paddingLeft: 18, margin: 0, color: '#444', fontSize: '1rem' }}>
                       {reviewTeam.map((member, index) => (
                         <li key={index}>
-                          {member.name} <span style={{ color: '#3b82f6', fontWeight: 500 }}>({member.role})</span>
+                          {member.name}
+                          {member.role ? <span style={{ color: '#3b82f6', fontWeight: 500 }}> ({member.role})</span> : null}
                         </li>
                       ))}
                     </ul>
@@ -1073,7 +1079,8 @@ function ProjectTable() {
                     <ul style={{ paddingLeft: 18, margin: 0, color: '#444', fontSize: '1rem' }}>
                       {interviewTeam.map((member, index) => (
                         <li key={index}>
-                          {member.name} <span style={{ color: '#3b82f6', fontWeight: 500 }}>({member.role})</span>
+                          {member.name}
+                          {member.role ? <span style={{ color: '#3b82f6', fontWeight: 500 }}> ({member.role})</span> : null}
                         </li>
                       ))}
                     </ul>

@@ -502,13 +502,19 @@ const parseTeamField = (data) => {
                 onChange={handleChange}
                 accept="image/*"
               />
-              {formData.picture && typeof formData.picture === 'string' && (
-                <img
-                  src={formData.picture}
-                  alt="Project"
-                  style={{ marginTop: '10px', maxHeight: '150px' }}
-                />
-              )}
+             {formData.picture && typeof formData.picture === 'string' ? (
+  <img
+    src={`http://localhost:5000${formData.picture}`}
+    alt="Project"
+    style={{ marginTop: '10px', maxHeight: '150px' }}
+    onError={(e) => {
+      console.error('Image load error:', e, 'URL:', formData.picture);
+      e.target.src = '/path/to/fallback-image.png'; // Fallback image
+    }}
+  />
+) : (
+  <p>No image available</p>
+)}
             </Form.Group>
           </div>
         </div>

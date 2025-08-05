@@ -38,10 +38,11 @@ const upload = multer({
   },
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
-
-// Route to create a project
 router.post('/create', upload.single('picture'), async (req, res) => {
   try {
+    console.log('Received body:', req.body);
+    console.log('Received file:', req.file);
+
     const {
       'responsible office': responsibleOffice,
       'name project': nameProject,
@@ -56,8 +57,52 @@ router.post('/create', upload.single('picture'), async (req, res) => {
       sectorManager,
     } = req.body;
 
-    // Convert reviewDate to Date object if provided
-    const parsedReviewDate = reviewDate ? new Date(reviewDate) : new Date();
+    // Required fields validation
+    if (!responsibleOffice?.trim()) {
+      return res.status(400).json({ message: 'Responsible Office is required' });
+    }
+    if (!nameProject?.trim()) {
+      return res.status(400).json({ message: 'Project Name is required' });
+    }
+    if (!numberProject?.trim()) {
+      return res.status(400).json({ message: 'Project Number is required' });
+    }
+    if (!projectScope?.trim()) {
+      return res.status(400).json({ message: 'Project Scope is required' });
+    }
+    if (!managerConstructor?.trim()) {
+      return res.status(400).json({ message: 'Constructor Manager is required' });
+    }
+    if (!manager?.trim()) {
+      return res.status(400).json({ message: 'Manager is required' });
+    }
+    if (!reviewDate) {
+      return res.status(400).json({ message: 'Review Date is required' });
+    }
+
+    // Parse team member arrays
+    let reviewTeamArray = [];
+    let interviewTeamArray = [];
+
+    try {
+      if (reviewTeamMembers) {
+        reviewTeamArray = typeof reviewTeamMembers === 'string' ? JSON.parse(reviewTeamMembers) : Array.isArray(reviewTeamMembers) ? reviewTeamMembers : [String(reviewTeamMembers)];
+        reviewTeamArray = reviewTeamArray.map(m => (typeof m === 'string' ? m : String(m))).filter(Boolean);
+      }
+      if (projectMembersInterviewed) {
+        interviewTeamArray = typeof projectMembersInterviewed === 'string' ? JSON.parse(projectMembersInterviewed) : Array.isArray(projectMembersInterviewed) ? projectMembersInterviewed : [String(projectMembersInterviewed)];
+        interviewTeamArray = interviewTeamArray.map(m => (typeof m === 'string' ? m : String(m))).filter(Boolean);
+      }
+    } catch (error) {
+      return res.status(400).json({ message: 'Team member fields must be valid JSON arrays of strings' });
+    }
+
+    if (reviewTeamArray.length === 0) {
+      return res.status(400).json({ message: 'At least one Review Team Member is required' });
+    }
+    if (interviewTeamArray.length === 0) {
+      return res.status(400).json({ message: 'At least one Interviewed Team Member is required' });
+    }
 
     // Prepare project data
     const projectData = {
@@ -67,26 +112,31 @@ router.post('/create', upload.single('picture'), async (req, res) => {
       'project scope': projectScope,
       'manager constructor': managerConstructor,
       'manager': manager,
-      'review date': parsedReviewDate,
-      'review team members': reviewTeamMembers ? (Array.isArray(reviewTeamMembers) ? reviewTeamMembers : [reviewTeamMembers]) : [],
-      'project members interviewed': projectMembersInterviewed ? (Array.isArray(projectMembersInterviewed) ? projectMembersInterviewed : [projectMembersInterviewed]) : [],
-      location: location || null, // Optional field
-      sectorManager: sectorManager || 'Other', // Default from schema if not provided
+      'review date': new Date(reviewDate),
+      'review team members': reviewTeamArray,
+      'project members interviewed': interviewTeamArray,
+      location: location || null,
+      sectorManager: sectorManager || 'Other',
     };
 
     // Handle image upload
     if (req.file) {
-      projectData.picture = `/uploads/${req.file.filename}`; // Store relative path
+      projectData.picture = `/Uploads/${req.file.filename}`;
+      console.log('Uploaded picture:', projectData.picture);
+    } else {
+      projectData.picture = null;
+      console.log('No picture uploaded, setting to null');
     }
 
     // Create and save the project
     const project = new Project(projectData);
     const savedProject = await project.save();
+    console.log('Saved project:', savedProject);
 
     res.status(201).json(savedProject);
   } catch (error) {
     console.error('Error creating project:', error);
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ message: `Failed to create project: ${error.message}` });
   }
 });
 
@@ -262,6 +312,7 @@ router.post('/:projectId/crrs', async (req, res) => {
     res.status(500).json({ message: `Failed to create CRR: ${error.message}` });
   }
 });
+
 router.put('/:id', upload.single('picture'), async (req, res) => {
   try {
     console.log('Received body:', req.body);

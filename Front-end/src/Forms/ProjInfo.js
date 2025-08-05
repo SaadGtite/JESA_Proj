@@ -4,55 +4,94 @@ import './ProjInfo.css'; // Your CSS file
 
 const NewProjectForm = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [reviewTeam, setReviewTeam] = useState([]);
   const [interviewTeam, setInterviewTeam] = useState([]);
   const [editIndex, setEditIndex] = useState(null);
   const [editType, setEditType] = useState(null);
+  const [existingPicture, setExistingPicture] = useState(null); // Store existing picture URL
 
   const responsibleOfficeRef = useRef(null);
-  const { id } = useParams(); 
   const projectNameRef = useRef(null);
   const projectNumberRef = useRef(null);
   const reviewDateRef = useRef(null);
   const managerRef = useRef(null);
   const constructorManagerRef = useRef(null);
   const projectScopeRef = useRef(null);
-  const locationRef = useRef(null); // Ref for location dropdown
-  const pictureRef = useRef(null); // Ref for file input
-  const sectorManagerRef = useRef(null); // Ref for sectorManager
+  const locationRef = useRef(null);
+  const pictureRef = useRef(null);
+  const sectorManagerRef = useRef(null);
   const reviewNameRef = useRef(null);
   const reviewRoleRef = useRef(null);
   const interviewNameRef = useRef(null);
   const interviewRoleRef = useRef(null);
 
+  // Parse team member string (e.g., "sjjs (CM)") into { name, role }
+  const parseTeamMember = (memberStr) => {
+    if (!memberStr) return { name: '', role: '' };
+    const match = memberStr.match(/^(.+)\s+\((.+)\)$/);
+    return match ? { name: match[1], role: match[2] } : { name: memberStr, role: 'Other' };
+  };
+
+  // Parse team field (array or JSON string) from backend
+  const parseTeamField = (data) => {
+    if (!data) {
+      console.warn('parseTeamField: No data provided, returning empty array');
+      return [];
+    }
+    let arr = [];
+    try {
+      if (typeof data === 'string') {
+        arr = JSON.parse(data);
+      } else if (Array.isArray(data)) {
+        arr = data;
+      } else {
+        console.warn('parseTeamField: Data is neither a string nor an array:', data);
+        return [];
+      }
+    } catch (error) {
+      console.error('parseTeamField: Failed to parse JSON:', error, 'Data:', data);
+      return [];
+    }
+    return arr
+      .map(member => (typeof member === 'string' ? member : ''))
+      .filter(str => str && typeof str === 'string');
+  };
+
+  // Fetch project data for editing
   useEffect(() => {
     if (id) {
       fetch(`http://localhost:5000/api/projects/${id}`)
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`Failed to fetch project: ${res.statusText}`);
+          return res.json();
+        })
         .then(data => {
+          console.log('Fetched project data:', data);
           if (responsibleOfficeRef.current) responsibleOfficeRef.current.value = data['responsible office'] || '';
           if (projectNameRef.current) projectNameRef.current.value = data['name project'] || '';
           if (projectNumberRef.current) projectNumberRef.current.value = data['number project'] || '';
-          if (reviewDateRef.current) reviewDateRef.current.value = data['review date']?.slice(0, 10) || '';
+          if (reviewDateRef.current) reviewDateRef.current.value = data['review date'] ? new Date(data['review date']).toISOString().split('T')[0] : '';
           if (managerRef.current) managerRef.current.value = data.manager || '';
           if (constructorManagerRef.current) constructorManagerRef.current.value = data['manager constructor'] || '';
           if (projectScopeRef.current) projectScopeRef.current.value = data['project scope'] || '';
-          if (locationRef.current) locationRef.current.value = data['location'] || ''; // Pre-fill location
-          if (pictureRef.current) pictureRef.current.value = data['picture'] || ''; // Pre-fill picture (if URL exists)
-          if (sectorManagerRef.current) sectorManagerRef.current.value = data['sectorManager'] || ''; // Pre-fill sectorManager
+          if (locationRef.current) locationRef.current.value = data.location || '';
+          if (sectorManagerRef.current) sectorManagerRef.current.value = data.sectorManager || '';
+          setExistingPicture(data.picture || null);
 
-          setReviewTeam((data['review team members'] || []).map(item => {
-            const [name, role] = item.split(':').map(s => s.trim());
-            return { name, role };
-          }));
-
-          setInterviewTeam((data['project members interviewed'] || []).map(item => {
-            const [name, role] = item.split(':').map(s => s.trim());
-            return { name, role };
-          }));
+          const parsedReviewTeam = parseTeamField(data['review team members']).map(parseTeamMember);
+          const parsedInterviewTeam = parseTeamField(data['project members interviewed']).map(parseTeamMember);
+          console.log('Parsed Review Team:', parsedReviewTeam);
+          console.log('Parsed Interview Team:', parsedInterviewTeam);
+          setReviewTeam(parsedReviewTeam);
+          setInterviewTeam(parsedInterviewTeam);
         })
-        .catch(err => console.error('Failed to fetch project for editing:', err));
+        .catch(err => {
+          console.error('Failed to fetch project:', err);
+          setError('Failed to load project data');
+        });
     }
   }, [id]);
 
@@ -60,21 +99,28 @@ const NewProjectForm = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError(null);
+    setSuccess(null);
 
     const formData = new FormData();
-    formData.append('responsible office', responsibleOfficeRef.current.value);
-    formData.append('name project', projectNameRef.current.value);
-    formData.append('number project', projectNumberRef.current.value);
+    formData.append('responsible office', responsibleOfficeRef.current.value.trim());
+    formData.append('name project', projectNameRef.current.value.trim());
+    formData.append('number project', projectNumberRef.current.value.trim());
     formData.append('review date', reviewDateRef.current.value);
-    formData.append('manager', managerRef.current.value);
-    formData.append('manager constructor', constructorManagerRef.current.value);
-    formData.append('project scope', projectScopeRef.current.value);
-    formData.append('location', locationRef.current.value); // Add location
-    if (pictureRef.current.files[0]) formData.append('picture', pictureRef.current.files[0]); // Add image file
-    formData.append('sectorManager', sectorManagerRef.current.value); // Add sectorManager
-    reviewTeam.forEach((member, index) => formData.append(`review team members[${index}]`, `${member.name}: ${member.role}`));
-    interviewTeam.forEach((member, index) => formData.append(`project members interviewed[${index}]`, `${member.name}: ${member.role}`));
+    formData.append('manager', managerRef.current.value.trim());
+    formData.append('manager constructor', constructorManagerRef.current.value.trim());
+    formData.append('project scope', projectScopeRef.current.value.trim());
+    formData.append('location', locationRef.current.value);
+    if (pictureRef.current.files[0]) {
+      formData.append('picture', pictureRef.current.files[0]);
+    } else if (id && existingPicture) {
+      formData.append('picture', existingPicture);
+    }
+    formData.append('sectorManager', sectorManagerRef.current.value);
+    formData.append('review team members', JSON.stringify(reviewTeam.map(member => `${member.name} (${member.role})`)));
+    formData.append('project members interviewed', JSON.stringify(interviewTeam.map(member => `${member.name} (${member.role})`)));
 
+    // Validation
     if (
       !formData.get('responsible office') ||
       !formData.get('name project') ||
@@ -86,62 +132,71 @@ const NewProjectForm = () => {
       reviewTeam.length === 0 ||
       interviewTeam.length === 0
     ) {
-      setError('All fields are required to proceed to the CRR questions.');
+      setError('All required fields must be filled, and at least one review and interviewed team member are required.');
       return;
     }
 
     try {
-      // Step 1: Create the project
-      const projectResponse = await fetch('http://localhost:5000/api/projects/create', {
-        method: 'POST',
-        body: formData, // Use FormData instead of JSON
+      const url = id ? `http://localhost:5000/api/projects/${id}` : 'http://localhost:5000/api/projects/create';
+      const method = id ? 'PUT' : 'POST';
+
+      console.log('Submitting form data:', Object.fromEntries(formData));
+
+      const projectResponse = await fetch(url, {
+        method,
+        body: formData,
       });
 
       if (!projectResponse.ok) {
-        throw new Error('Failed to create project');
+        const errorData = await projectResponse.json();
+        throw new Error(`Failed to ${id ? 'update' : 'create'} project: ${errorData.message || 'Unknown error'}`);
       }
 
       const projectData = await projectResponse.json();
-      const projectId = projectData._id; // Adjust based on your response structure
+      const projectId = id || projectData.project?._id || projectData._id;
 
-      // Step 2: Create the CRR for the project
-      const crrData = {
-        title: projectNameRef.current.value, // Use project name as CRR title
-      };
+      if (!id) {
+        const crrData = {
+          title: projectNameRef.current.value,
+        };
 
-      const crrResponse = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(crrData),
-      });
+        const crrResponse = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(crrData),
+        });
 
-      if (!crrResponse.ok) {
-        throw new Error('Failed to create CRR');
+        if (!crrResponse.ok) {
+          throw new Error('Failed to create CRR');
+        }
+
+        const crrDataResponse = await crrResponse.json();
+        console.log('CRR created:', crrDataResponse);
       }
 
-      const crrDataResponse = await crrResponse.json();
-      console.log('Project created:', projectData);
-      console.log('CRR created:', crrDataResponse);
-
-      // Step 3: Navigate to the projects page
-      navigate('/home/projects');
+      setSuccess(`Project ${id ? 'updated' : 'created'} successfully!`);
+      setTimeout(() => navigate('/home/projects'), 1500);
     } catch (err) {
       setError(err.message);
-      console.error('Error:', err);
+      console.error('Submission error:', err);
     }
   };
 
   const addOrUpdateMember = (type, name, role) => {
+    if (!name.trim() || !role) {
+      setError(`${type === 'review' ? 'Review Team' : 'Interviewed Team'} member name and role are required`);
+      return;
+    }
+
+    const member = { name: name.trim(), role };
     if (editType === type && editIndex !== null) {
       const updatedTeam = type === 'review' ? [...reviewTeam] : [...interviewTeam];
-      updatedTeam[editIndex] = { name, role };
+      updatedTeam[editIndex] = member;
       type === 'review' ? setReviewTeam(updatedTeam) : setInterviewTeam(updatedTeam);
       setEditIndex(null);
       setEditType(null);
-    } else if (name && role) {
-      type === 'review'
-        ? setReviewTeam([...reviewTeam, { name, role }])
-        : setInterviewTeam([...interviewTeam, { name, role }]);
+    } else {
+      type === 'review' ? setReviewTeam([...reviewTeam, member]) : setInterviewTeam([...interviewTeam, member]);
     }
 
     if (type === 'review') {
@@ -156,12 +211,12 @@ const NewProjectForm = () => {
   const startEdit = (type, index) => {
     setEditType(type);
     setEditIndex(index);
-    if (type === 'review') {
-      reviewNameRef.current.value = reviewTeam[index].name;
-      reviewRoleRef.current.value = reviewTeam[index].role;
-    } else {
-      interviewNameRef.current.value = interviewTeam[index].name;
-      interviewRoleRef.current.value = interviewTeam[index].role;
+    const team = type === 'review' ? reviewTeam : interviewTeam;
+    reviewNameRef.current.value = team[index].name;
+    reviewRoleRef.current.value = team[index].role;
+    if (type === 'interview') {
+      interviewNameRef.current.value = team[index].name;
+      interviewRoleRef.current.value = team[index].role;
     }
   };
 
@@ -171,13 +226,27 @@ const NewProjectForm = () => {
     } else {
       setInterviewTeam(interviewTeam.filter((_, i) => i !== index));
     }
+    if (editType === type && editIndex === index) {
+      setEditType(null);
+      setEditIndex(null);
+      if (type === 'review') {
+        reviewNameRef.current.value = '';
+        reviewRoleRef.current.value = '';
+      } else {
+        interviewNameRef.current.value = '';
+        interviewRoleRef.current.value = '';
+      }
+    }
   };
 
   return (
     <div className="form-page">
       <div className="form-container">
-        <h2 className="form-title">Create New Project</h2>
-        <p className="form-subtitle">Enter the project information to begin the CRR validation process</p>
+        <h2 className="form-title">{id ? 'Edit Project' : 'Create New Project'}</h2>
+        <p className="form-subtitle">{id ? 'Update the project information' : 'Enter the project information to begin the CRR validation process'}</p>
+
+        {error && <div className="alert alert-danger mt-3">{error}</div>}
+        {success && <div className="alert alert-success mt-3">{success}</div>}
 
         <form className="row g-4" onSubmit={handleSubmit} encType="multipart/form-data">
           <div className="col-md-6">
@@ -233,80 +302,110 @@ const NewProjectForm = () => {
 
             <label className="form-label mt-3">Project Image</label>
             <input type="file" className="form-control" accept="image/*" ref={pictureRef} />
+            {id && existingPicture && (
+              <img
+                src={`http://localhost:5000${existingPicture}`}
+                alt="Project"
+                style={{ marginTop: '10px', maxHeight: '150px' }}
+                onError={(e) => console.error('Image load error:', e, 'URL:', `http://localhost:5000${existingPicture}`)}
+              />
+            )}
           </div>
 
-          {/* Review Team Section */}
           <div className="col-12 mt-4">
             <label className="form-label">Review Team Members <span className="text-danger">*</span></label>
             <div className="input-group mb-3 team-input-group">
               <input type="text" className="form-control" placeholder="Name" ref={reviewNameRef} />
               <select className="form-select" defaultValue="" ref={reviewRoleRef}>
-                <option value="" disabled></option>
-                <option>CM</option>
-                <option>PM</option>
-                <option>SM</option>
-                <option>PC</option>
-                <option>HSE</option>
-                <option>QA/QC</option>
-                <option>Other</option>
+                <option value="" disabled>Select Role</option>
+                <option value="CM">CM</option>
+                <option value="PM">PM</option>
+                <option value="SM">SM</option>
+                <option value="PC">PC</option>
+                <option value="HSE">HSE</option>
+                <option value="QA/QC">QA/QC</option>
+                <option value="Other">Other</option>
               </select>
-              <button type="button" className="btn-primary" onClick={() => addOrUpdateMember('review', reviewNameRef.current.value, reviewRoleRef.current.value)}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => addOrUpdateMember('review', reviewNameRef.current.value, reviewRoleRef.current.value)}
+              >
                 {editType === 'review' && editIndex !== null ? 'Update' : 'Add'}
               </button>
             </div>
             <ul className="list-group">
-              {reviewTeam.map((member, index) => (
-                <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                  {member.name} - {member.role}
-                  <div>
-                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('review', index)}>Edit</button>
-                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('review', index)}>Delete</button>
-                  </div>
-                </li>
-              ))}
+              {reviewTeam.length > 0 ? (
+                reviewTeam.map((member, index) => (
+                  <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                    {member.name} ({member.role})
+                    <div>
+                      <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('review', index)}>
+                        Edit
+                      </button>
+                      <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('review', index)}>
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <li className="list-group-item text-muted">No review team members</li>
+              )}
             </ul>
           </div>
 
-          {/* Interview Team Section */}
           <div className="col-12 mt-4">
             <label className="form-label">Interviewed Team Members <span className="text-danger">*</span></label>
             <div className="input-group mb-3 team-input-group">
               <input type="text" className="form-control" placeholder="Name" ref={interviewNameRef} />
               <select className="form-select" defaultValue="" ref={interviewRoleRef}>
-                <option value="" disabled></option>
-                <option>CM</option>
-                <option>PM</option>
-                <option>SM</option>
-                <option>PC</option>
-                <option>HSE</option>
-                <option>QA/QC</option>
-                <option>Other</option>
+                <option value="" disabled>Select Role</option>
+                <option value="CM">CM</option>
+                <option value="PM">PM</option>
+                <option value="SM">SM</option>
+                <option value="PC">PC</option>
+                <option value="HSE">HSE</option>
+                <option value="QA/QC">QA/QC</option>
+                <option value="Other">Other</option>
               </select>
-              <button type="button" className="btn-primary" onClick={() => addOrUpdateMember('interview', interviewNameRef.current.value, interviewRoleRef.current.value)}>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => addOrUpdateMember('interview', interviewNameRef.current.value, interviewRoleRef.current.value)}
+              >
                 {editType === 'interview' && editIndex !== null ? 'Update' : 'Add'}
               </button>
             </div>
             <ul className="list-group">
-              {interviewTeam.map((member, index) => (
-                <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                  {member.name} - {member.role}
-                  <div>
-                    <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('interview', index)}>Edit</button>
-                    <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('interview', index)}>Delete</button>
-                  </div>
-                </li>
-              ))}
+              {interviewTeam.length > 0 ? (
+                interviewTeam.map((member, index) => (
+                  <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
+                    {member.name} ({member.role})
+                    <div>
+                      <button type="button" className="btn btn-sm btn-warning mx-2" onClick={() => startEdit('interview', index)}>
+                        Edit
+                      </button>
+                      <button type="button" className="btn btn-sm btn-danger" onClick={() => deleteMember('interview', index)}>
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <li className="list-group-item text-muted">No interviewed team members</li>
+              )}
             </ul>
           </div>
 
-          {error && (
-            <div className="alert alert-danger mt-3">{error}</div>
-          )}
-
           <div className="form-footer d-flex justify-content-between align-items-center mt-4">
-            <button type="button" className="btn btn-secondary" onClick={handleBack}>Back</button>
+            <button type="button" className="btn btn-secondary" onClick={handleBack}>
+              Back
+            </button>
             <div className="text-muted small">All fields are required to proceed to the CRR questions</div>
-            <button type="submit" className="btn btn-primary">Next</button>
+            <button type="submit" className="btn btn-primary">
+              {id ? 'Update' : 'Next'}
+            </button>
           </div>
         </form>
       </div>
