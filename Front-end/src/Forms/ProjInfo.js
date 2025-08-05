@@ -123,8 +123,8 @@ const NewProjectForm = () => {
       console.log('Project created:', projectData);
       console.log('CRR created:', crrDataResponse);
 
-      // Step 3: Navigate to the next page
-      navigate('/home');
+      // Step 3: Navigate to the projects page
+      navigate('/home/projects');
     } catch (err) {
       setError(err.message);
       console.error('Error:', err);
