@@ -1005,30 +1005,47 @@ function ProjectTable() {
         <div style={{ flex: 2, minWidth: 260, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: 20, display: 'flex', flexDirection: 'column', gap: 18, height: 'auto', justifyContent: 'stretch' }}>
           {/* Helper function to parse team data */}
           {(() => {
+            // Robust team member parser
             const parseTeamData = (data) => {
               if (!data) return [];
-              // Case 1: Array of objects (new format)
-              if (Array.isArray(data) && data.every(item => item && typeof item === 'object' && 'name' in item && 'role' in item)) {
-                return data;
-              }
-              // Case 2: JSON string (new format stored as string)
-              try {
-                const parsed = JSON.parse(data);
-                if (Array.isArray(parsed) && parsed.every(item => item && typeof item === 'object' && 'name' in item && 'role' in item)) {
-                  return parsed;
+              if (Array.isArray(data)) {
+                // Array of objects or strings
+                if (data.every(item => item && typeof item === 'object' && 'name' in item && 'role' in item)) {
+                  return data;
                 }
-              } catch (e) {
-                // Not a valid JSON string, try legacy format
+                // Array of strings (legacy)
+                return data.map(item => {
+                  if (typeof item === 'string') {
+                    const [name, role] = item.split(':').map(str => str.trim());
+                    return { name, role: role || 'Other' };
+                  }
+                  return item;
+                }).filter(item => item.name);
               }
-              // Case 3: Legacy string format (e.g., "John, Jane" or "John:PM, Jane:SM")
+              // JSON string
               if (typeof data === 'string') {
+                try {
+                  const parsed = JSON.parse(data);
+                  if (Array.isArray(parsed)) {
+                    return parsed.map(item => {
+                      if (typeof item === 'object' && 'name' in item && 'role' in item) return item;
+                      if (typeof item === 'string') {
+                        const [name, role] = item.split(':').map(str => str.trim());
+                        return { name, role: role || 'Other' };
+                      }
+                      return null;
+                    }).filter(item => item && item.name);
+                  }
+                } catch (e) {
+                  // Not a valid JSON string, try legacy format
+                }
+                // Legacy string format
                 return data.split(',').map(item => {
                   const [name, role] = item.split(':').map(str => str.trim());
                   return { name, role: role || 'Other' };
                 }).filter(item => item.name);
               }
-              // Case 4: Single string or unexpected format
-              return typeof data === 'string' && data.trim() ? [{ name: data.trim(), role: 'Other' }] : [];
+              return [];
             };
 
             const reviewTeam = parseTeamData(selectedProject['review team members']);
