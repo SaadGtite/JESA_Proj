@@ -21,44 +21,62 @@ const EditProjectForm = () => {
     picture: null,
   });
 
-  // State for dynamic team member lists (initialize as null to distinguish between loading and empty)
-  const [reviewTeam, setReviewTeam] = useState(null);
-  const [interviewTeam, setInterviewTeam] = useState(null);
+  // Team members as arrays of strings like "Name (Role)"
+  const [reviewTeam, setReviewTeam] = useState([]);
+  const [interviewTeam, setInterviewTeam] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [editType, setEditType] = useState(null); // 'review' or 'interview'
-  const [editIndex, setEditIndex] = useState(null); // Index of member being edited
+  const [editIndex, setEditIndex] = useState(null); // index of member being edited
 
-  // Refs for input fields
+  // Refs for inputs
   const reviewNameRef = useRef(null);
   const reviewRoleRef = useRef(null);
   const interviewNameRef = useRef(null);
   const interviewRoleRef = useRef(null);
 
-  // Function to parse legacy string data into array of objects
-  const parseLegacyTeamData = (data, defaultRole = 'Other') => {
-    if (!data) return [];
-    // Case 1: Already a JSON string (new format)
-    try {
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.every(item => item.name && item.role)) {
-        return parsed;
-      }
-    } catch (e) {
-      // Not a valid JSON string, try legacy format
-    }
-    // Case 2: Legacy string format (e.g., "John, Jane" or "John:PM, Jane:SM")
-    if (typeof data === 'string') {
-      return data.split(',').map(item => {
-        const [name, role] = item.split(':').map(str => str.trim());
-        return { name, role: role || defaultRole };
-      }).filter(item => item.name); // Filter out empty names
-    }
-    // Case 3: Unexpected format, return empty array
+  // Helper to parse backend JSON string field to array of strings in 'Name (Role)' format
+  // Helper to parse backend JSON string field to array of strings in 'Name (Role)' format
+const parseTeamField = (data) => {
+  if (!data) {
+    console.warn('parseTeamField: No data provided, returning empty array');
     return [];
-  };
+  }
+  let arr = [];
+  try {
+    // If data is a string, parse it as JSON
+    if (typeof data === 'string') {
+      arr = JSON.parse(data);
+    } else if (Array.isArray(data)) {
+      arr = data;
+    } else {
+      console.warn('parseTeamField: Data is neither a string nor an array:', data);
+      return [];
+    }
+  } catch (error) {
+    console.error('parseTeamField: Failed to parse JSON:', error, 'Data:', data);
+    return [];
+  }
+  if (Array.isArray(arr)) {
+    // Always return array of strings
+    return arr
+      .map(member => {
+        if (typeof member === 'object' && member !== null && 'name' in member && 'role' in member) {
+          return `${member.name} (${member.role})`;
+        }
+        if (typeof member === 'string') {
+          return member;
+        }
+        console.warn('parseTeamField: Invalid member format:', member);
+        return '';
+      })
+      .filter(str => str && typeof str === 'string');
+  }
+  console.warn('parseTeamField: Data is not an array:', arr);
+  return [];
+};
 
-  // Fetch project data
+  // Fetch project data on mount
   useEffect(() => {
     fetch(`http://localhost:5000/api/projects/${id}`)
       .then(res => res.json())
@@ -75,13 +93,15 @@ const EditProjectForm = () => {
           sectorManager: data.sectorManager || '',
           picture: data.picture || null,
         });
-        // Parse team member data (handles both JSON and legacy string formats)
-        const parsedReview = parseLegacyTeamData(data['review team members']);
-        const parsedInterview = parseLegacyTeamData(data['project members interviewed']);
-        setReviewTeam(parsedReview);
-        setInterviewTeam(parsedInterview);
+
+        const parsedReviewTeam = parseTeamField(data['review team members']);
+        const parsedInterviewTeam = parseTeamField(data['project members interviewed']);
+        console.log('Review Team:', parsedReviewTeam);
+        console.log('Interview Team:', parsedInterviewTeam);
+        setReviewTeam(parsedReviewTeam);
+        setInterviewTeam(parsedInterviewTeam);
       })
-      .catch(error => setError('Failed to load project data'));
+      .catch(() => setError('Failed to load project data'));
   }, [id]);
 
   // Handle form input changes
@@ -94,37 +114,39 @@ const EditProjectForm = () => {
     }
   };
 
-  // Add or update team member
+  // Add or update a member string "Name (Role)"
   const addOrUpdateMember = (type, name, role) => {
+    setError('');
     if (!name.trim() || !role) {
       setError(`${type === 'review' ? 'Review Team' : 'Interviewed Team'} member name and role are required`);
       return;
     }
 
-    const newMember = { name, role };
+    const memberStr = `${name.trim()} (${role})`;
+
     if (type === 'review') {
       if (editType === 'review' && editIndex !== null) {
         setReviewTeam(prev => {
           const updated = [...prev];
-          updated[editIndex] = newMember;
+          updated[editIndex] = memberStr;
           return updated;
         });
       } else {
-        setReviewTeam(prev => [...prev, newMember]);
+        setReviewTeam(prev => [...prev, memberStr]);
       }
-    } else if (type === 'interview') {
+    } else {
       if (editType === 'interview' && editIndex !== null) {
         setInterviewTeam(prev => {
           const updated = [...prev];
-          updated[editIndex] = newMember;
+          updated[editIndex] = memberStr;
           return updated;
         });
       } else {
-        setInterviewTeam(prev => [...prev, newMember]);
+        setInterviewTeam(prev => [...prev, memberStr]);
       }
     }
 
-    // Reset input fields and edit state
+    // Reset inputs and editing state
     if (type === 'review') {
       reviewNameRef.current.value = '';
       reviewRoleRef.current.value = '';
@@ -136,18 +158,22 @@ const EditProjectForm = () => {
     setEditIndex(null);
   };
 
-  // Start editing a member
+  // Start editing a member - parse string into name and role
   const startEdit = (type, index) => {
     setEditType(type);
     setEditIndex(index);
+
+    const member = (type === 'review' ? reviewTeam : interviewTeam)[index];
+    const match = member.match(/^(.+)\s+\((.+)\)$/);
+    const name = match ? match[1] : member;
+    const role = match ? match[2] : 'Other';
+
     if (type === 'review') {
-      const member = reviewTeam[index];
-      reviewNameRef.current.value = member.name;
-      reviewRoleRef.current.value = member.role;
+      reviewNameRef.current.value = name;
+      reviewRoleRef.current.value = role;
     } else {
-      const member = interviewTeam[index];
-      interviewNameRef.current.value = member.name;
-      interviewRoleRef.current.value = member.role;
+      interviewNameRef.current.value = name;
+      interviewRoleRef.current.value = role;
     }
   };
 
@@ -158,6 +184,7 @@ const EditProjectForm = () => {
     } else {
       setInterviewTeam(prev => prev.filter((_, i) => i !== index));
     }
+    // Clear edit if deleting edited member
     if (editType === type && editIndex === index) {
       setEditType(null);
       setEditIndex(null);
@@ -171,13 +198,13 @@ const EditProjectForm = () => {
     }
   };
 
-  // Handle form submission
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    // Validate required fields
+    // Basic validation
     if (!formData.responsibleOffice.trim() || !formData.nameProject.trim()) {
       setError('Responsible Office and Project Name are required');
       return;
@@ -204,11 +231,6 @@ const EditProjectForm = () => {
       dataToSend.append('picture', formData.picture);
     } else if (formData.picture && typeof formData.picture === 'string') {
       dataToSend.append('picture', formData.picture);
-    }
-
-    // Debug: Log FormData entries
-    for (let [key, value] of dataToSend.entries()) {
-      console.log(`FormData Entry: ${key} = ${value}`);
     }
 
     try {
@@ -315,7 +337,8 @@ const EditProjectForm = () => {
                 onChange={handleChange}
               />
             </Form.Group>
-            {/* Review Team Section */}
+
+            {/* Review Team */}
             <div className="mb-3">
               <Form.Label>Review Team Members <span className="text-danger">*</span></Form.Label>
               <div className="input-group mb-3 team-input-group">
@@ -348,9 +371,9 @@ const EditProjectForm = () => {
                 </Button>
               </div>
               <ul className="list-group">
-                {(reviewTeam && reviewTeam.length > 0) ? reviewTeam.map((member, index) => (
+                {reviewTeam.length > 0 ? reviewTeam.map((member, index) => (
                   <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    {member.name} - {member.role}
+                    {member}
                     <div>
                       <Button
                         variant="warning"
@@ -372,7 +395,8 @@ const EditProjectForm = () => {
                 )) : <li className="list-group-item text-muted">No review team members</li>}
               </ul>
             </div>
-            {/* Interview Team Section */}
+
+            {/* Interview Team */}
             <div className="mb-3">
               <Form.Label>Interviewed Team Members <span className="text-danger">*</span></Form.Label>
               <div className="input-group mb-3 team-input-group">
@@ -405,9 +429,9 @@ const EditProjectForm = () => {
                 </Button>
               </div>
               <ul className="list-group">
-                {(interviewTeam && interviewTeam.length > 0) ? interviewTeam.map((member, index) => (
+                {interviewTeam.length > 0 ? interviewTeam.map((member, index) => (
                   <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                    {member.name} - {member.role}
+                    {member}
                     <div>
                       <Button
                         variant="warning"
@@ -429,6 +453,7 @@ const EditProjectForm = () => {
                 )) : <li className="list-group-item text-muted">No interviewed team members</li>}
               </ul>
             </div>
+
             <Form.Group className="mb-3" controlId="location">
               <Form.Label>Location</Form.Label>
               <Form.Select
@@ -478,29 +503,17 @@ const EditProjectForm = () => {
                 accept="image/*"
               />
               {formData.picture && typeof formData.picture === 'string' && (
-                <div>
-                  <p>Current Image: {formData.picture}</p>
-                  <img
-                    src={`http://localhost:5000${formData.picture}`}
-                    alt="Current Project"
-                    style={{ maxWidth: '200px', maxHeight: '150px', marginTop: '10px' }}
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                </div>
+                <img
+                  src={formData.picture}
+                  alt="Project"
+                  style={{ marginTop: '10px', maxHeight: '150px' }}
+                />
               )}
             </Form.Group>
           </div>
         </div>
-        <Button variant="primary" type="submit" style={{ height: '40px', minWidth: '120px', fontWeight: '500' }}>
-          Save Changes
-        </Button>
-        <Button
-          variant="secondary"
-          className="ms-2"
-          onClick={() => navigate('/home/projects')}
-          style={{ height: '40px', minWidth: '120px', fontWeight: '500' }}
-        >
-          Cancel
+        <Button variant="primary" type="submit" style={{ minWidth: '160px', padding: '12px 0' }}>
+          Update Project
         </Button>
       </Form>
     </Container>
