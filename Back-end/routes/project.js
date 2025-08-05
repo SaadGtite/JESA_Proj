@@ -264,14 +264,15 @@ router.post('/:projectId/crrs', async (req, res) => {
 });
 router.put('/:id', upload.single('picture'), async (req, res) => {
   try {
-    console.log('Received body:', req.body); // Debug: Log raw body
+    console.log('Received body:', req.body);
+
     const {
       'responsible office': responsibleOffice,
       'name project': nameProject,
       'number project': numberProject,
       'project scope': projectScope,
       'manager constructor': managerConstructor,
-      'manager': manager,
+      manager,
       'review date': reviewDate,
       'review team members': reviewTeamMembers,
       'project members interviewed': projectMembersInterviewed,
@@ -280,65 +281,69 @@ router.put('/:id', upload.single('picture'), async (req, res) => {
       picture: pictureFromBody,
     } = req.body;
 
-    // Validate required fields
-    if (!responsibleOffice || responsibleOffice.trim() === '') {
+    // Required fields validation
+    if (!responsibleOffice?.trim()) {
       return res.status(400).json({ message: 'Responsible Office is required and cannot be empty' });
     }
-    if (!nameProject || nameProject.trim() === '') {
+    if (!nameProject?.trim()) {
       return res.status(400).json({ message: 'Project Name is required and cannot be empty' });
     }
-
-    // Parse JSON strings for team members and validate
-    let reviewTeamArray, interviewTeamArray;
-    try {
-      reviewTeamArray = reviewTeamMembers
-        ? typeof reviewTeamMembers === 'string'
-          ? JSON.parse(reviewTeamMembers)
-          : Array.isArray(reviewTeamMembers)
-          ? reviewTeamMembers
-          : [reviewTeamMembers]
-        : [];
-      interviewTeamArray = projectMembersInterviewed
-        ? typeof projectMembersInterviewed === 'string'
-          ? JSON.parse(projectMembersInterviewed)
-          : Array.isArray(projectMembersInterviewed)
-          ? projectMembersInterviewed
-          : [projectMembersInterviewed]
-        : [];
-    } catch (error) {
-      return res.status(400).json({ message: 'Invalid format for team members: must be valid JSON or array' });
-    }
-
-    // Validate non-empty team member arrays
-    if (!Array.isArray(reviewTeamArray) || reviewTeamArray.length === 0) {
+    // Validate team member arrays
+    if (!reviewTeamMembers || (typeof reviewTeamMembers === 'string' && !JSON.parse(reviewTeamMembers)?.length)) {
       return res.status(400).json({ message: 'At least one Review Team Member is required' });
     }
-    if (!Array.isArray(interviewTeamArray) || interviewTeamArray.length === 0) {
+    if (!projectMembersInterviewed || (typeof projectMembersInterviewed === 'string' && !JSON.parse(projectMembersInterviewed)?.length)) {
       return res.status(400).json({ message: 'At least one Interviewed Team Member is required' });
     }
 
-    // Validate team member format (each should have name and role)
-    const validateTeamMembers = (members, fieldName) => {
-      if (!members.every(member => member && typeof member === 'object' && member.name && member.role)) {
-        throw new Error(`${fieldName} must contain objects with 'name' and 'role' properties`);
-      }
-    };
-    validateTeamMembers(reviewTeamArray, 'Review Team Members');
-    validateTeamMembers(interviewTeamArray, 'Interviewed Team Members');
+    // Parse stringified arrays to actual arrays
+    let reviewTeamArray = [];
+    let interviewTeamArray = [];
 
-    // Validate project ID format
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+    try {
+      if (reviewTeamMembers) {
+        reviewTeamArray =
+          typeof reviewTeamMembers === 'string'
+            ? JSON.parse(reviewTeamMembers)
+            : Array.isArray(reviewTeamMembers)
+            ? reviewTeamMembers
+            : [String(reviewTeamMembers)];
+
+        reviewTeamArray = reviewTeamArray
+          .map(m => (typeof m === 'string' ? m : String(m)))
+          .filter(Boolean);
+      }
+
+      if (projectMembersInterviewed) {
+        interviewTeamArray =
+          typeof projectMembersInterviewed === 'string'
+            ? JSON.parse(projectMembersInterviewed)
+            : Array.isArray(projectMembersInterviewed)
+            ? projectMembersInterviewed
+            : [String(projectMembersInterviewed)];
+
+        interviewTeamArray = interviewTeamArray
+          .map(m => (typeof m === 'string' ? m : String(m)))
+          .filter(Boolean);
+      }
+    } catch (jsonError) {
+      return res.status(400).json({ message: 'Team member fields must be valid JSON arrays of strings' });
+    }
+
+    // Validate ID format
+    const projectId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
       return res.status(400).json({ message: 'Invalid project ID format' });
     }
 
-    // Prepare update data
+    // Construct the update object
     const updateData = {
       'responsible office': responsibleOffice,
       'name project': nameProject,
       'number project': numberProject || undefined,
       'project scope': projectScope || undefined,
       'manager constructor': managerConstructor || undefined,
-      'manager': manager || undefined,
+      manager: manager || undefined,
       'review date': reviewDate ? new Date(reviewDate) : undefined,
       'review team members': reviewTeamArray,
       'project members interviewed': interviewTeamArray,
@@ -346,21 +351,23 @@ router.put('/:id', upload.single('picture'), async (req, res) => {
       sectorManager: sectorManager || undefined,
     };
 
-    // Handle picture update
+    // Handle picture
     if (req.file) {
-      updateData.picture = `/uploads/${req.file.filename}`; // Update with new image path
+      updateData.picture = `/Uploads/${req.file.filename}`;
       console.log('Updated picture with new file:', updateData.picture);
     } else if (pictureFromBody && typeof pictureFromBody === 'string') {
-      updateData.picture = pictureFromBody; // Retain existing picture path
+      updateData.picture = pictureFromBody;
       console.log('Retained picture path:', pictureFromBody);
     }
 
-    // Remove undefined values to avoid overwriting existing data
-    Object.keys(updateData).forEach((key) => updateData[key] === undefined && delete updateData[key]);
+    // Remove undefined fields to prevent overwriting
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) delete updateData[key];
+    });
 
-    // Update the project
+    // Perform update
     const updatedProject = await Project.findByIdAndUpdate(
-      req.params.id,
+      projectId,
       { $set: updateData },
       { new: true, runValidators: true }
     );
@@ -369,10 +376,14 @@ router.put('/:id', upload.single('picture'), async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    res.json(updatedProject);
+    // Log the saved project to verify data
+    console.log('Saved project:', updatedProject);
+
+    res.json({ message: 'Project updated successfully', project: updatedProject });
+
   } catch (error) {
-    console.error('Error updating project:', error.message, error.stack);
-    res.status(400).json({ message: `Failed to update project: ${error.message}` });
+    console.error('Error updating project:', error.message);
+    res.status(500).json({ message: `Failed to update project: ${error.message}` });
   }
 });
 
@@ -412,12 +423,16 @@ router.get('/:projectId/crrs/:crrId', async (req, res) => {
     const crr = project.crrs.id(crrId);
     if (!crr) return res.status(404).json({ message: 'CRR not found' });
 
-   const sectionsWithVirtuals = crr.sections.map(section => {
-  const sectionJSON = section.toJSON();
-  return sectionJSON;
-});
+    // Robustly convert sections to plain objects
+    const sectionsWithVirtuals = crr.sections.map(section => {
+      if (typeof section.toJSON === 'function') {
+        return section.toJSON();
+      } else {
+        return section;
+      }
+    });
 
-res.json({ sections: sectionsWithVirtuals });
+    res.json({ sections: sectionsWithVirtuals });
 
 
   } catch (error) {

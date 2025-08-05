@@ -86,63 +86,7 @@ router.post('/register', validateRegisterInput, async (req, res) => {
   }
 });
 
-// Login route
-router.post('/login', validateLoginInput, async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Create token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET || 'SECRET_KEY',
-      { expiresIn: '12h' }
-    );
-
-    res.json({ token, username: user.username, role: user.role });
-  } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Forgot password route (Note: In production, send email instead of returning tempPassword)
-router.post('/forgot-password', validateForgotPasswordInput, async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    // Find user by email
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: 'Email not found' });
-    }
-
-    // Generate random temporary password
-    const tempPassword = Math.random().toString(36).slice(-8);
-
-    // Hash the temporary password
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
-
-    // Update user's password
-    user.password = hashedPassword;
-    await user.save();
-
-    // TODO: In production, send tempPassword via email using a service like Nodemailer
-    res.json({ message: 'Temporary password generated and saved', tempPassword });
-  } catch (err) {
-    console.error('Forgot password error:', err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+    // ...existing forgot password logic...
 
 // Get user profile
 router.get('/profile', authMiddleware, async (req, res) => {

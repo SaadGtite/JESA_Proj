@@ -9,8 +9,26 @@ const projectSchema = new mongoose.Schema({
   'manager constructor': { type: String, required: true },
   'manager': { type: String, required: true },
   'review date': { type: Date, required: true },
-  'review team members': [{ type: String, required: true }],
-  'project members interviewed': [{ type: String, required: true }],
+  'review team members': {
+    type: [{ type: String }],
+    required: true,
+    validate: {
+      validator: function (arr) {
+        return arr.length > 0;
+      },
+      message: 'At least one review team member is required',
+    },
+  },
+  'project members interviewed': {
+    type: [{ type: String }],
+    required: true,
+    validate: {
+      validator: function (arr) {
+        return arr.length > 0;
+      },
+      message: 'At least one interviewed team member is required',
+    },
+  },
   'location': { type: String },
   'picture': { 
     type: String, 
@@ -18,8 +36,7 @@ const projectSchema = new mongoose.Schema({
     validate: {
       validator: function(v) {
         if (v === null) return true; // Allow null
-        // Updated regex to handle accented characters and broader filename support
-        return /^(\/uploads\/[\p{L}\p{N}\-_.]+\.(jpg|jpeg|png|gif)|https?:\/\/)/u.test(v);
+        return /^(\/Uploads\/[\p{L}\p{N}\-_.]+\.(jpg|jpeg|png|gif)|https?:\/\/)/u.test(v);
       },
       message: props => `${props.value} is not a valid image path or URL!`
     }
