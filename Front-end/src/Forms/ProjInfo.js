@@ -63,7 +63,7 @@ const NewProjectForm = () => {
   // Fetch project data for editing
   useEffect(() => {
     if (id) {
-      fetch(`http://localhost:5000/api/projects/${id}`)
+      fetch(`http://backend:5000/api/projects/${id}`)
         .then(res => {
           if (!res.ok) throw new Error(`Failed to fetch project: ${res.statusText}`);
           return res.json();
@@ -137,7 +137,7 @@ const NewProjectForm = () => {
     }
 
     try {
-      const url = id ? `http://localhost:5000/api/projects/${id}` : 'http://localhost:5000/api/projects/create';
+      const url = id ? `http://backend:5000/api/projects/${id}` : 'http://backend:5000/api/projects/create';
       const method = id ? 'PUT' : 'POST';
 
       console.log('Submitting form data:', Object.fromEntries(formData));
@@ -160,7 +160,7 @@ const NewProjectForm = () => {
           title: projectNameRef.current.value,
         };
 
-        const crrResponse = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs`, {
+        const crrResponse = await fetch(`http://backend:5000/api/projects/${projectId}/crrs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(crrData),
@@ -304,10 +304,10 @@ const NewProjectForm = () => {
             <input type="file" className="form-control" accept="image/*" ref={pictureRef} />
             {id && existingPicture && (
               <img
-                src={`http://localhost:5000${existingPicture}`}
+                src={`http://backend:5000${existingPicture}`}
                 alt="Project"
                 style={{ marginTop: '10px', maxHeight: '150px' }}
-                onError={(e) => console.error('Image load error:', e, 'URL:', `http://localhost:5000${existingPicture}`)}
+                onError={(e) => console.error('Image load error:', e, 'URL:', `http://backend:5000${existingPicture}`)}
               />
             )}
           </div>
