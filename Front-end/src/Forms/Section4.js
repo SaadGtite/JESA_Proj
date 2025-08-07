@@ -20,7 +20,7 @@ const Section4 = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
+        const res = await fetch(`/api/projects/${projectId}/crrs/${crrId}`);
         if (!res.ok) throw new Error(`Échec de la requête : ${res.status}`);
         const data = await res.json();
 
@@ -45,7 +45,7 @@ const Section4 = () => {
             }));
 
             // Save the randomized showstoppers to backend
-            await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/4`, {
+            await fetch(`/api/projects/${projectId}/crrs/${crrId}/section/4`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ questions }),
@@ -78,7 +78,7 @@ const Section4 = () => {
       setProjectLoading(true);
       setProjectError(null);
       try {
-        const res = await fetch(`http://localhost:5000/api/projects/${projectId}`);
+        const res = await fetch(`/api/projects/${projectId}`);
         if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
         const data = await res.json();
         setProject(data);
@@ -163,7 +163,7 @@ const Section4 = () => {
         comments: q.comments || '',
       }));
 
-      const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/4`, {
+      const res = await fetch(`/api/projects/${projectId}/crrs/${crrId}/section/4`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions: sanitizedQuestions }),

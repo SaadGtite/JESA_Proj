@@ -20,7 +20,7 @@ const Section1 = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
+        const res = await fetch(`/api/projects/${projectId}/crrs/${crrId}`);
         if (!res.ok) throw new Error(`Échec de la requête : ${res.status}`);
         const data = await res.json();
 
@@ -45,7 +45,7 @@ const Section1 = () => {
             }));
 
             // Save the randomized showstoppers to backend
-            await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/1`, {
+            await fetch(`/api/projects/${projectId}/crrs/${crrId}/section/1`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ questions }),
@@ -78,7 +78,7 @@ const Section1 = () => {
       setProjectLoading(true);
       setProjectError(null);
       try {
-        const res = await fetch(`http://localhost:5000/api/projects/${projectId}`);
+        const res = await fetch(`/api/projects/${projectId}`);
         if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
         const data = await res.json();
         setProject(data);
@@ -162,7 +162,7 @@ const Section1 = () => {
         comments: q.comments || '',
       }));
 
-      const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}/section/1`, {
+      const res = await fetch(`/api/projects/${projectId}/crrs/${crrId}/section/1`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questions: sanitizedQuestions }),
@@ -213,7 +213,7 @@ const Section1 = () => {
           <div className="project-container">
             <div className="project-image-container">
               <img
-                    src={project.picture ? `http://localhost:5000${project.picture}` : '../assets/proj-img.png' }
+                    src={project.picture ? `/uploads/${project.picture}` : '../assets/proj-img.png' }
                     alt={project['name project']}
                     className="project-card-image"
                     onError={(e) => {

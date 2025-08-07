@@ -29,7 +29,7 @@ const Analytics = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:5000/api/projects/${projectId}/crrs/${crrId}`);
+        const res = await fetch(`/api/projects/${projectId}/crrs/${crrId}`);
         if (!res.ok) throw new Error('Failed to fetch CRR');
         const data = await res.json();
         if (data.sections) {

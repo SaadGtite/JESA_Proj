@@ -3,27 +3,35 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
 
-
 const app = express();
 
-app.use(cors());
+// Open CORS for all origins (for nginx proxy)
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
-mongoose.connect('mongodb://mongo:27017/JesaDB', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Serve static uploads before API routes
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Import routes
 const userRoutes = require('./routes/user.js');
-const projectRouter = require('./routes/project.js'); // Ensure this file exists
-
+const projectRoutes = require('./routes/project.js');
 app.use('/api/users', userRoutes);
-app.use('/api/projects', projectRouter); 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/projects', projectRoutes);
 
+// Health check route
 app.get('/', (req, res) => {
   res.send('Hello from backend!');
 });
 
 const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+// Mongoose connect (no deprecated options for v6+)
+mongoose.connect('mongodb://mongo:27017/JesaDB')
+  .then(() => {
+    console.log('Connected to MongoDB');
+    app.listen(PORT, () => console.log(`Server running on http://0.0.0.0:${PORT}`));
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });

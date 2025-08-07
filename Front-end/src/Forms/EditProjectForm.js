@@ -78,7 +78,7 @@ const parseTeamField = (data) => {
 
   // Fetch project data on mount
   useEffect(() => {
-    fetch(`http://localhost:5000/api/projects/${id}`)
+    fetch(`/api/projects/${id}`)
       .then(res => res.json())
       .then(data => {
         setFormData({
@@ -234,7 +234,7 @@ const parseTeamField = (data) => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      const response = await fetch(`/api/projects/${id}`, {
         method: 'PUT',
         body: dataToSend,
       });
@@ -504,7 +504,7 @@ const parseTeamField = (data) => {
               />
              {formData.picture && typeof formData.picture === 'string' ? (
   <img
-    src={`http://localhost:5000${formData.picture}`}
+    src={formData.picture ? `/uploads/${formData.picture}` : ''}
     alt="Project"
     style={{ marginTop: '10px', maxHeight: '150px' }}
     onError={(e) => {

@@ -158,7 +158,7 @@ function ProjectTable() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/projects')
+    fetch('/api/projects')
       .then(res => res.json())
       .then(data => {
         setProjects(data);
@@ -217,7 +217,7 @@ function ProjectTable() {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
-        const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+        const res = await fetch(`/api/projects/${id}`, {
           method: 'DELETE'
         });
         if (!res.ok) throw new Error();
@@ -239,7 +239,7 @@ function ProjectTable() {
       try {
         await Promise.all(
           selectedProjectIds.map(id =>
-            fetch(`http://localhost:5000/api/projects/${id}`, { method: 'DELETE' })
+            fetch(`/api/projects/${id}`, { method: 'DELETE' })
               .then(res => {
                 if (!res.ok) throw new Error(`Failed to delete project ${id}`);
                 return id;
@@ -259,7 +259,7 @@ function ProjectTable() {
   const handleExportPDF = async (e, id) => {
     e.stopPropagation();
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`);
+      const res = await fetch(`/api/projects/${id}`);
       if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
       const project = await res.json();
 
@@ -377,7 +377,7 @@ function ProjectTable() {
   const handleExportExcel = async (e, id) => {
     e.stopPropagation();
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`);
+      const res = await fetch(`/api/projects/${id}`);
       if (!res.ok) throw new Error(`Failed to fetch project: ${res.status}`);
       const project = await res.json();
 
@@ -917,7 +917,7 @@ function ProjectTable() {
                   onClick={() => handleRowClick(project)}
                 >
                   <img
-                    src={project.picture ? `http://localhost:5000${project.picture}` : projImg}
+                    src={project.picture ? `/uploads/${project.picture}` : projImg}
                     alt={project['name project']}
                     className="project-card-image"
                     onError={(e) => {
